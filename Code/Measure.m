@@ -85,7 +85,7 @@ while hasFrame(v)
         end
         
         A_C = imfill(A_C_L,'holes'); %Rellena la figura
-        %A_C = imerode(imerode(A_C,strel('diamond',1)),strel('diamond',1));%quita detalles en los bordes
+        A_C = imerode(imerode(A_C,strel('diamond',1)),strel('diamond',1));%quita detalles en los bordes
         
         subplot(1, 3, j-2);
         imshow(A_C,RI);
@@ -96,10 +96,15 @@ while hasFrame(v)
             hold on 
             plot([measure_x measure_x],[measure(2) measure(1)],'r-','LineWidth',3) 
             hold off
+            subplot(1, 3, 1);
+            hold on 
+            plot([measure_x measure_x],[measure(2) measure(1)],'r-','LineWidth',3) 
+            hold off
+        else
+            hold on 
+            plot(centroids_muscle(:,1),centroids_muscle(:,2),'b*') 
+            hold off
         end
-        hold on 
-        plot(centroids_muscle(:,1),centroids_muscle(:,2),'b*') 
-        hold off
         %toc
     end 
 
