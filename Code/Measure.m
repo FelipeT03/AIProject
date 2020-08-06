@@ -85,7 +85,7 @@ while hasFrame(v)
         end
         
         A_C = imfill(A_C_L,'holes'); %Rellena la figura
-        A_C = imerode(imerode(A_C,strel('diamond',1)),strel('diamond',1));%quita detalles en los bordes
+        %A_C = imerode(imerode(A_C,strel('diamond',1)),strel('diamond',1));%quita detalles en los bordes
         
         subplot(1, 3, j-2);
         imshow(A_C,RI);
