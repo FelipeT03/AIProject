@@ -1,4 +1,4 @@
-%Pruebas con videos
+%% Pruebas con videos
 clear
 clc
 
@@ -6,20 +6,22 @@ clc
 K = 5;%3 %try different values
 max_iters = 100; 
 measure_x = 100;%value of x (coordinate)
+measure_y = [];
 C = eye(K);
 centroids = NaN;
 memoria_distancia = []; %v.NumberOfFrames ->length of memoria_distancia
 video_name = '1.mp4';
 path_v = 'C:/Users/ftosc/Documents/Tohoku University/Videos/06.17/';%04.21/'
+cut_area = [177 30 283 481];
 
-%% Entrenamiento
+%% Training
 
 v = VideoReader(strcat(path_v,video_name));
 
 eco = readFrame(v);
 
 eco = rgb2gray(eco);
-eco = imcrop(eco,[177 30 283 481]);%[177 30 283 481]
+eco = imcrop(eco,cut_area);
 eco = double(eco);
 eco = eco / 255; % range(0-1)
 img_size_eco = size(eco);
@@ -33,23 +35,23 @@ while sum(isnan(centroids),'all')
 end
 centroids  = sort(centroids,1);
 
-%% Resultado
+%% Results
 
 v.CurrentTime = 0;%Rewind to the beginning
 
 figure
 set(gcf, 'Position', get(0, 'Screensize'));
 RI = imref2d(size(eco));
-Frame = 0;
-
+frame = 0;
+tic
 
 while hasFrame(v)
     pause(0.001)
-    Frame = Frame + 1;
+    frame = frame + 1;
     eco = readFrame(v);
     
     eco = rgb2gray(eco);
-    eco = imcrop(eco,[177 30 283 481]);
+    eco = imcrop(eco,cut_area);
     eco = double(eco);
     eco = eco / 255; % range(0-1)
     img_size_eco = size(eco);
@@ -57,61 +59,41 @@ while hasFrame(v)
     data_eco = eco(:);
     idx_eco = findClosestCentroids(data_eco, centroids);
     
-    for j = K-1:K
+    muscle = findMuscle(idx_eco,C,img_size_eco); 
+    if frame == 1
+        centroid_muscle_y = regionprops(logical(sum(muscle,2)),'Centroid');%calculo del centroide en y 
+        centroid_muscle_y = cat(1,centroid_muscle_y.Centroid);
+    end
+    muscle_image = imfill(muscle,'holes'); %Rellena la figura
 
-        C_K = C(:,j);
-        eco_C = C_K(idx_eco,:);
-        eco_C = reshape(eco_C, img_size_eco(1), img_size_eco(2), 1);
-        eco_C_L = findLargestArea(eco_C);
-        
-        if j == K-1 && Frame == 1
-            centroids_muscle = regionprops(logical(sum(eco_C_L,2)),'Centroid');%calculo del centroide en y 
-            centroids_muscle = cat(1,centroids_muscle.Centroid);
-        elseif j == K
-            pmeasure = find(eco_C_L(:,measure_x)==1);
-            measure(1) = pmeasure(end);
-            apo_inferior = eco_C - eco_C_L;
-            apo_inferior = apo_inferior(centroids_muscle(:,2):end,:);
-            apo_inferior = findLargestArea(apo_inferior);
-            pmeasure = find(apo_inferior(:,measure_x)==1);
-            if isempty(pmeasure)
-                pmeasure = previous_pmeasure;
-                fprintf('No se detecta aponeurosis inferior. Frame: %d \n',Frame)
-            end
-            previous_pmeasure = pmeasure;
-            measure(2) = pmeasure(1) + centroids_muscle(:,2) - 1;
-            distancia = round(double(measure(2)-measure(1)));
-            memoria_distancia(Frame) = distancia;
-            eco_C_L(centroids_muscle(:,2):end,:) = eco_C_L(centroids_muscle(:,2):end,:) + apo_inferior;
-        end
-        
-        eco_C = imfill(eco_C_L,'holes'); %Rellena la figura
-        %A_C = imerode(imerode(A_C,strel('diamond',1)),strel('diamond',1));%quita detalles en los bordes
-        
-        subplot(1, 3, j-2);
-        imshow(eco_C,RI);
-        if K == j
-            title(sprintf('Aponeurosis: %d pixels ', distancia))
-            hold on 
-            plot([measure_x measure_x],[measure(2) measure(1)],'r-','LineWidth',3) 
-            hold off
-        else
-            hold on 
-            plot(centroids_muscle(:,1),centroids_muscle(:,2),'b*') 
-            hold off
-        end
-    end 
+    [aponeurosis, measure_y] = findAponeurosis(idx_eco,C,img_size_eco,centroid_muscle_y,measure_x,measure_y,frame);
+    memoria_distancia(frame) = round(double(measure_y(2)-measure_y(1)));
+    eco_C = imfill(aponeurosis,'holes'); %Rellena la figura
+    %A_C = imerode(imerode(A_C,strel('diamond',1)),strel('diamond',1));%quita detalles en los bordes
 
-    subplot(1, 3, 1);
+    subplot(1, 3, 1);%Eco 
     imshow(eco,RI); 
-    title(sprintf('Frame: %d ', Frame))
+    title(sprintf('Frame: %d ', frame))
     hold on 
-    plot([measure_x measure_x],[measure(2) measure(1)],'r-','LineWidth',3) 
+    plot([measure_x measure_x],[measure_y(2) measure_y(1)],'r-','LineWidth',3) 
     hold off
     
+    subplot(1, 3, 2);%Muscle
+    imshow(muscle_image,RI);
+    title('Muscle')
+    hold on 
+    plot(centroid_muscle_y(:,1),centroid_muscle_y(:,2),'b*') 
+    hold off
+    
+    subplot(1, 3, 3);%Aponeurosis
+    imshow(eco_C,RI);
+    title(sprintf('Aponeurosis: %d pixels ', memoria_distancia(frame)))
+    hold on 
+    plot([measure_x measure_x],[measure_y(2) measure_y(1)],'r-','LineWidth',3) 
+    hold off 
 
 end
-
+toc
 figure
 plot(memoria_distancia)
 title(strcat('Stimulation Video: ', video_name))
