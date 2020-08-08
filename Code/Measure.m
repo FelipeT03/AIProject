@@ -5,12 +5,12 @@ clc
 %% Parameters 
 K = 5;%3 %try different values
 max_iters = 100; 
-measure_x = 100;%value of x (coordinate)
+measure_x = 140;%value of x (coordinate)
 measure_y = [];
 C = eye(K);
 centroids = NaN;
 memoria_distancia = []; %v.NumberOfFrames ->length of memoria_distancia
-video_name = '1.mp4';
+video_name = '3.mp4';
 path_v = 'C:/Users/ftosc/Documents/Tohoku University/Videos/06.17/';%04.21/'
 cut_area = [177 30 283 481];
 
@@ -68,34 +68,51 @@ while hasFrame(v)
 
     [aponeurosis, measure_y] = findAponeurosis(idx_eco,C,img_size_eco,centroid_muscle_y,measure_x,measure_y,frame);
     memoria_distancia(frame) = round(double(measure_y(2)-measure_y(1)));
-    eco_C = imfill(aponeurosis,'holes'); %Rellena la figura
-    %A_C = imerode(imerode(A_C,strel('diamond',1)),strel('diamond',1));%quita detalles en los bordes
+    aponeurosis_image = imfill(aponeurosis,'holes'); %Rellena la figura
+    
 
     subplot(1, 3, 1);%Eco 
-    imshow(eco,RI); 
+    imshow(eco,RI)
     title(sprintf('Frame: %d ', frame))
     hold on 
     plot([measure_x measure_x],[measure_y(2) measure_y(1)],'r-','LineWidth',3) 
     hold off
-    
-    subplot(1, 3, 2);%Muscle
-    imshow(muscle_image,RI);
-    title('Muscle')
-    hold on 
-    plot(centroid_muscle_y(:,1),centroid_muscle_y(:,2),'b*') 
-    hold off
-    
-    subplot(1, 3, 3);%Aponeurosis
-    imshow(eco_C,RI);
-    title(sprintf('Aponeurosis: %d pixels ', memoria_distancia(frame)))
-    hold on 
-    plot([measure_x measure_x],[measure_y(2) measure_y(1)],'r-','LineWidth',3) 
-    hold off 
+%     
+%     subplot(1, 3, 2);%Muscle
+%     imshow(muscle_image,RI);
+%     title('Muscle')
+%     hold on 
+%     plot(centroid_muscle_y(:,1),centroid_muscle_y(:,2),'b*') 
+%     hold off
+%     
+%     subplot(1, 3, 3);%Aponeurosis
+%     imshow(aponeurosis_image,RI);
+%     title(sprintf('Aponeurosis: %d pixels ', memoria_distancia(frame)))
+%     hold on 
+%     plot([measure_x measure_x],[measure_y(2) measure_y(1)],'r-','LineWidth',3) 
+%     hold off 
 
+%     subplot(1, 2, 1)
+%     imshow((labeloverlay(eco,aponeurosis_image)),RI); 
+%     title(sprintf('Frame: %d ', frame))
+%     hold on 
+%     plot([measure_x measure_x],[measure_y(2) measure_y(1)],'r-','LineWidth',3) 
+%     hold off
+%     
+%     subplot(1, 2, 2)
+%     plot(memoria_distancia,'LineWidth',2)
+%     title(strcat('Stimulation Video: ', video_name))
+%     %ylim([60 120])
+%     xlabel('Frame')
+%     ylabel('Pixels')
+%     grid minor 
 end
+
+memoria_distancia = memoria_distancia * 0.0121; %156 pixels / 2cm
+memoria_distancia = memoria_distancia(:);
 toc
 figure
-plot(memoria_distancia)
+plot(memoria_distancia,'LineWidth',2)
 title(strcat('Stimulation Video: ', video_name))
 xlabel('Frame')
 ylabel('Pixels')
