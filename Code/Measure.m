@@ -9,7 +9,6 @@ measure_x = 100;%value of x (coordinate)
 measure_y = [];
 C = eye(K);
 centroids = NaN;
-memoria_distancia = []; %v.NumberOfFrames ->length of memoria_distancia
 %video_name = '3.mp4';
 %path_v = 'C:/Users/ftosc/Documents/Tohoku University/Videos/06.17/';%04.21/'
 [video_name,path_v] = uigetfile('*.*','Select Video File');
@@ -17,6 +16,8 @@ cut_area = [177 30 283 481];
 
 %% Training
 
+v = VideoReader(strcat(path_v,video_name));
+memoria_distancia = zeros(v.NumberOfFrames,1);% ->length of memoria_distancia
 v = VideoReader(strcat(path_v,video_name));
 
 eco = readFrame(v);
@@ -111,7 +112,6 @@ while hasFrame(v)
 end
 
 memoria_distancia = memoria_distancia * 0.0121; %156 pixels / 2cm
-memoria_distancia = memoria_distancia(:);
 toc
 figure
 plot(memoria_distancia,'LineWidth',2)
