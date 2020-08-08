@@ -17,8 +17,7 @@ cut_area = [177 30 283 481];
 %% Training
 
 v = VideoReader(strcat(path_v,video_name));
-memoria_distancia = zeros(v.NumberOfFrames,1);% ->length of memoria_distancia
-v = VideoReader(strcat(path_v,video_name));
+memoria_distancia = zeros(round(v.FrameRate * v.Duration),1);% ->length of memoria_distancia
 
 eco = readFrame(v);
 
