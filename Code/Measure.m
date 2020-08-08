@@ -12,6 +12,7 @@ centroids = NaN;
 memoria_distancia = []; %v.NumberOfFrames ->length of memoria_distancia
 video_name = '1.mp4';
 path_v = 'C:/Users/ftosc/Documents/Tohoku University/Videos/06.17/';%04.21/'
+%[video_name,path_v] = uigetfile('*.*','Select Video File');
 cut_area = [177 30 283 481];
 
 %% Training
