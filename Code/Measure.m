@@ -5,14 +5,14 @@ clc
 %% Parameters 
 K = 5;%3 %try different values
 max_iters = 100; 
-measure_x = 140;%value of x (coordinate)
+measure_x = 100;%value of x (coordinate)
 measure_y = [];
 C = eye(K);
 centroids = NaN;
 memoria_distancia = []; %v.NumberOfFrames ->length of memoria_distancia
-video_name = '3.mp4';
-path_v = 'C:/Users/ftosc/Documents/Tohoku University/Videos/06.17/';%04.21/'
-%[video_name,path_v] = uigetfile('*.*','Select Video File');
+%video_name = '3.mp4';
+%path_v = 'C:/Users/ftosc/Documents/Tohoku University/Videos/06.17/';%04.21/'
+[video_name,path_v] = uigetfile('*.*','Select Video File');
 cut_area = [177 30 283 481];
 
 %% Training
@@ -64,6 +64,7 @@ while hasFrame(v)
     if frame == 1
         centroid_muscle_y = regionprops(logical(sum(muscle,2)),'Centroid');%calculo del centroide en y 
         centroid_muscle_y = cat(1,centroid_muscle_y.Centroid);
+        centroid_muscle_y = round(centroid_muscle_y);
     end
     muscle_image = imfill(muscle,'holes'); %Rellena la figura
 
