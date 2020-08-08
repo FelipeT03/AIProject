@@ -7,7 +7,7 @@ function  [aponeurosis, measure] = findAponeurosis(idx_eco,Centroids,img_size,ce
     pmeasure = find(apo_superior(:,measure_x)==1);
     measure(1) = pmeasure(end);
     apo_inferior = eco_C - apo_superior;
-    apo_inferior = apo_inferior(centroid_muscle_y(:,2):end,:);
+    apo_inferior = apo_inferior(centroid_muscle_y(:,2): end,:);
     apo_inferior = findLargestArea(apo_inferior);
     pmeasure = find(apo_inferior(:,measure_x)==1);
     if isempty(pmeasure)
@@ -17,6 +17,6 @@ function  [aponeurosis, measure] = findAponeurosis(idx_eco,Centroids,img_size,ce
         measure(2) = pmeasure(1) + centroid_muscle_y(:,2) - 1;
     end
 
-    aponeurosis(centroid_muscle_y(:,2):end,:) = logical(aponeurosis(centroid_muscle_y(:,2):end,:) + apo_inferior);%logical replace any number > 1 with 1
+    aponeurosis(centroid_muscle_y(:,2):end,:) = logical(aponeurosis(centroid_muscle_y(:,2): end,:) + apo_inferior);%logical replace any number > 1 with 1
     
 end 
