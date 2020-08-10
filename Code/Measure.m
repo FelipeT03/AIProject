@@ -20,7 +20,7 @@ cut_area = [177 30 283 481];
 %% Training
 
 v = VideoReader(strcat(path_v,video_name));
-memoria_distancia = zeros(round(v.FrameRate * v.Duration),1);% ->length of memoria_distancia
+memoria_distancia = zeros(round(v.FrameRate * v.Duration),2);% ->length of memoria_distancia
 
 eco = readFrame(v);
 
@@ -28,11 +28,11 @@ eco = rgb2gray(eco);
 eco = imcrop(eco,cut_area);
 eco = double(eco);
 eco = eco / 255; % range(0-1)
-img_size_eco = size(eco);
 
 data_eco = eco(:);
-%data_eco = data_eco .* (data_eco > threshold);
-data_eco(find(data_eco < threshold)) = [];
+img_size_eco = size(eco);
+data_eco(data_eco < threshold) = [];
+
 
 while sum(isnan(centroids),'all')
     initial_centroids = kMeansInitCentroids(data_eco, K);
@@ -59,7 +59,6 @@ while hasFrame(v)
     eco = imcrop(eco,cut_area);
     eco = double(eco);
     eco = eco / 255; % range(0-1)
-    img_size_eco = size(eco);
     
     data_eco = eco(:);
     idx_eco = findClosestCentroids(data_eco, centroids);
@@ -73,7 +72,8 @@ while hasFrame(v)
     muscle_image = imfill(muscle,'holes'); %Rellena la figura
 
     [aponeurosis, measure_y] = findAponeurosis(idx_eco,C,img_size_eco,centroid_muscle_y,measure_x,measure_y,frame);
-    memoria_distancia(frame) = round(double(measure_y(2)-measure_y(1)));
+    memoria_distancia(frame,1) = v.CurrentTime;  
+    memoria_distancia(frame,2) = round(double(measure_y(2)-measure_y(1)));
     aponeurosis_image = imfill(aponeurosis,'holes'); %Rellena la figura
     
 
@@ -82,21 +82,22 @@ while hasFrame(v)
     title(sprintf('Frame: %d ', frame))
     hold on 
     plot([measure_x measure_x],[measure_y(2) measure_y(1)],'r-','LineWidth',3) 
-    hold off
-    
-    subplot(1, 3, 2);%Muscle
-    imshow(muscle_image,RI);
-    title('Muscle')
-    hold on 
     plot(centroid_muscle_y(:,1),centroid_muscle_y(:,2),'b*') 
     hold off
     
-    subplot(1, 3, 3);%Aponeurosis
-    imshow(aponeurosis_image,RI);
-    title(sprintf('Aponeurosis: %d pixels ', memoria_distancia(frame)))
-    hold on 
-    plot([measure_x measure_x],[measure_y(2) measure_y(1)],'r-','LineWidth',3) 
-    hold off 
+%     subplot(1, 3, 2);%Muscle
+%     imshow(muscle_image,RI);
+%     title('Muscle')
+%     hold on 
+%     plot(centroid_muscle_y(:,1),centroid_muscle_y(:,2),'b*') 
+%     hold off
+    
+%     subplot(1, 3, 3);%Aponeurosis
+%     imshow(aponeurosis_image,RI);
+%     title(sprintf('Aponeurosis: %d pixels ', memoria_distancia(frame)))
+%     hold on 
+%     plot([measure_x measure_x],[measure_y(2) measure_y(1)],'r-','LineWidth',3) 
+%     hold off 
     
 %   ---- eco + plot ----
 %     subplot(1, 2, 1)
@@ -115,11 +116,43 @@ while hasFrame(v)
 %     grid minor 
 end
 
-memoria_distancia = memoria_distancia * 0.0121; %156 pixels / 2cm
+memoria_distancia(:,2) = memoria_distancia(:,2) * 0.0121; %156 pixels / 2cm
 toc
 figure
-plot(memoria_distancia,'LineWidth',2)
+plot(memoria_distancia(:,2),'LineWidth',2)
 title(strcat('Stimulation Video: ', video_name))
 xlabel('Frame')
 ylabel('Pixels')
 grid minor 
+
+%% MT vs length
+[value_min, frame_min] = min(memoria_distancia(:,2));
+[value_max, frame_max] = max(memoria_distancia(:,2));
+
+if (frame_min-1) > 0
+    v.CurrentTime = memoria_distancia((frame_min-1),1);
+else 
+    v.CurrentTime = 0;
+end
+eco = readFrame(v);    
+eco = rgb2gray(eco);
+eco = imcrop(eco,cut_area);
+eco = double(eco)/ 255;
+data_eco = eco(:);
+idx_eco = findClosestCentroids(data_eco, centroids);
+[SUPERIOR,INFERIOR] = MTvslength(idx_eco,C,img_size_eco,centroid_muscle_y,measure_x,measure_y,frame);
+%find(SUPERIOR(:,1) == INFERIOR(1))
+
+v.CurrentTime = memoria_distancia((frame_max-1),1);
+eco = readFrame(v);    
+eco = rgb2gray(eco);
+eco = imcrop(eco,cut_area);
+eco = double(eco)/ 255;
+data_eco = eco(:);
+idx_eco = findClosestCentroids(data_eco, centroids);
+MTvslength(idx_eco,C,img_size_eco,centroid_muscle_y,measure_x,measure_y,frame)
+
+fprintf('%.4f %d \n',value_min, frame_min)
+fprintf('%.4f %d \n',value_max, frame_max)
+
+
