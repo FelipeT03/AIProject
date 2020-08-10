@@ -3,7 +3,9 @@ clear
 clc
 
 %% Parameters 
-K = 5;%3 %try different values
+K = 4;%3 %try different values
+numberOfK_muscle = 2;
+threshold = 10/100;%Porcentaje para treshold
 max_iters = 100; 
 measure_x = 100;%value of x (coordinate)
 measure_y = [];
@@ -13,7 +15,7 @@ centroids = NaN;
 %path_v = 'C:/Users/ftosc/Documents/Tohoku University/Videos/06.17/';%04.21/'
 [video_name,path_v] = uigetfile('*.*','Select Video File');
 cut_area = [177 30 283 481];
-numberOfK_muscle = 2;
+
 
 %% Training
 
@@ -29,7 +31,8 @@ eco = eco / 255; % range(0-1)
 img_size_eco = size(eco);
 
 data_eco = eco(:);
-
+%data_eco = data_eco .* (data_eco > threshold);
+data_eco(find(data_eco < threshold)) = [];
 
 while sum(isnan(centroids),'all')
     initial_centroids = kMeansInitCentroids(data_eco, K);
