@@ -8,12 +8,12 @@ function  [aponeurosis, measure] = findAponeurosis(idx_eco,Centroids,img_size,ce
     apo_inferior = eco_C - apo_superior;
     apo_inferior = apo_inferior(centroid_muscle_y(:,2):end,:);%imprimir este dato para visualizar con ruido 
     apo_inferior = findLargestArea(apo_inferior);
-    measure(2) = find(apo_inferior(:,measure_x),1,'first');
-    if isempty(measure(2))
+    pmeasure = find(apo_inferior(:,measure_x),1,'first');
+    if isempty(pmeasure)
         measure(2) = previous_measure(2);
         fprintf('No se detecta aponeurosis inferior. Frame: %d \n',frame)
     else
-        measure(2) = measure(1,2) + centroid_muscle_y(:,2) - 1;
+        measure(2) = pmeasure + centroid_muscle_y(:,2) - 1;
     end
 
     aponeurosis(centroid_muscle_y(:,2):end,:) = logical(aponeurosis(centroid_muscle_y(:,2):end,:) + apo_inferior);%logical replace any number > 1 with 1

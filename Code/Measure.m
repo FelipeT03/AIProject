@@ -97,7 +97,8 @@ while hasFrame(v)
     hold on 
     plot([measure_x measure_x],[measure_y(2) measure_y(1)],'r-','LineWidth',3) 
     hold off 
-
+    
+%   ---- eco + plot ----
 %     subplot(1, 2, 1)
 %     imshow((labeloverlay(eco,aponeurosis_image)),RI); 
 %     title(sprintf('Frame: %d ', frame))
