@@ -13,6 +13,7 @@ centroids = NaN;
 %path_v = 'C:/Users/ftosc/Documents/Tohoku University/Videos/06.17/';%04.21/'
 [video_name,path_v] = uigetfile('*.*','Select Video File');
 cut_area = [177 30 283 481];
+numberOfK_muscle = 2;
 
 %% Training
 
@@ -60,7 +61,7 @@ while hasFrame(v)
     data_eco = eco(:);
     idx_eco = findClosestCentroids(data_eco, centroids);
     
-    muscle = findMuscle(idx_eco,C,img_size_eco); 
+    muscle = findMuscle(idx_eco,C,img_size_eco,numberOfK_muscle); 
     if frame == 1
         centroid_muscle_y = regionprops(logical(sum(muscle,2)),'Centroid');%calculo del centroide en y 
         centroid_muscle_y = cat(1,centroid_muscle_y.Centroid);
@@ -79,20 +80,20 @@ while hasFrame(v)
     hold on 
     plot([measure_x measure_x],[measure_y(2) measure_y(1)],'r-','LineWidth',3) 
     hold off
-%     
-%     subplot(1, 3, 2);%Muscle
-%     imshow(muscle_image,RI);
-%     title('Muscle')
-%     hold on 
-%     plot(centroid_muscle_y(:,1),centroid_muscle_y(:,2),'b*') 
-%     hold off
-%     
-%     subplot(1, 3, 3);%Aponeurosis
-%     imshow(aponeurosis_image,RI);
-%     title(sprintf('Aponeurosis: %d pixels ', memoria_distancia(frame)))
-%     hold on 
-%     plot([measure_x measure_x],[measure_y(2) measure_y(1)],'r-','LineWidth',3) 
-%     hold off 
+    
+    subplot(1, 3, 2);%Muscle
+    imshow(muscle_image,RI);
+    title('Muscle')
+    hold on 
+    plot(centroid_muscle_y(:,1),centroid_muscle_y(:,2),'b*') 
+    hold off
+    
+    subplot(1, 3, 3);%Aponeurosis
+    imshow(aponeurosis_image,RI);
+    title(sprintf('Aponeurosis: %d pixels ', memoria_distancia(frame)))
+    hold on 
+    plot([measure_x measure_x],[measure_y(2) measure_y(1)],'r-','LineWidth',3) 
+    hold off 
 
 %     subplot(1, 2, 1)
 %     imshow((labeloverlay(eco,aponeurosis_image)),RI); 
