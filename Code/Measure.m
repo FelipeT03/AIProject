@@ -15,7 +15,7 @@ centroids = NaN;
 %path_v = 'C:/Users/ftosc/Documents/Tohoku University/Videos/06.17/';%04.21/'
 [video_name,path_v] = uigetfile('*.*','Select Video File');
 cut_area = [177 30 283 481];
-
+param = 0.0121;
 
 %% Training
 
@@ -73,17 +73,17 @@ while hasFrame(v)
 
     [aponeurosis, measure_y] = findAponeurosis(idx_eco,C,img_size_eco,centroid_muscle_y,measure_x,measure_y,frame);
     memoria_distancia(frame,1) = v.CurrentTime;  
-    memoria_distancia(frame,2) = round(double(measure_y(2)-measure_y(1)));
+    memoria_distancia(frame,2) = round(double(measure_y(2)-measure_y(1))) * param;
     aponeurosis_image = imfill(aponeurosis,'holes'); %Rellena la figura
     
 
-    subplot(1, 3, 1);%Eco 
-    imshow(eco,RI)
-    title(sprintf('Frame: %d ', frame))
-    hold on 
-    plot([measure_x measure_x],[measure_y(2) measure_y(1)],'r-','LineWidth',3) 
-    plot(centroid_muscle_y(:,1),centroid_muscle_y(:,2),'b*') 
-    hold off
+%     subplot(1, 3, 1);%Eco 
+%     imshow(eco,RI)
+%     title(sprintf('Frame: %d ', frame))
+%     hold on 
+%     plot([measure_x measure_x],[measure_y(2) measure_y(1)],'r-','LineWidth',3) 
+%     plot(centroid_muscle_y(:,1),centroid_muscle_y(:,2),'b*') 
+%     hold off
     
 %     subplot(1, 3, 2);%Muscle
 %     imshow(muscle_image,RI);
@@ -100,32 +100,34 @@ while hasFrame(v)
 %     hold off 
     
 %   ---- eco + plot ----
-%     subplot(1, 2, 1)
-%     imshow((labeloverlay(eco,aponeurosis_image)),RI); 
-%     title(sprintf('Frame: %d ', frame))
-%     hold on 
-%     plot([measure_x measure_x],[measure_y(2) measure_y(1)],'r-','LineWidth',3) 
-%     hold off
-%     
-%     subplot(1, 2, 2)
-%     plot(memoria_distancia,'LineWidth',2)
-%     title(strcat('Stimulation Video: ', video_name))
-%     %ylim([60 120])
-%     xlabel('Frame')
-%     ylabel('Pixels')
-%     grid minor 
+    subplot(1, 2, 1)
+    imshow(eco,RI)
+    title(sprintf('Frame: %d ', frame))
+    hold on 
+    plot([measure_x measure_x],[measure_y(2) measure_y(1)],'r-','LineWidth',3) 
+    plot(centroid_muscle_y(:,1),centroid_muscle_y(:,2),'b*') 
+    hold off
+    
+    subplot(1, 2, 2)
+    plot(memoria_distancia(:,2),'LineWidth',2)
+    title(strcat('Stimulation Video: ', video_name))
+    %ylim([60 120])
+    xlabel('Frame')
+    ylabel('Pixels')
+    grid minor 
 end
 
-memoria_distancia(:,2) = memoria_distancia(:,2) * 0.0121; %156 pixels / 2cm
-toc
-figure
-plot(memoria_distancia(:,2),'LineWidth',2)
-title(strcat('Stimulation Video: ', video_name))
-xlabel('Frame')
-ylabel('Pixels')
-grid minor 
+% memoria_distancia(:,2) = memoria_distancia(:,2) * param; %156 pixels / 2cm
+% toc
+% figure
+% plot(memoria_distancia(:,2),'LineWidth',2)
+% title(strcat('Stimulation Video: ', video_name))
+% xlabel('Frame')
+% ylabel('Pixels')
+% grid minor 
 
 %% MT vs length
+
 [value_min, frame_min] = min(memoria_distancia(:,2));
 [value_max, frame_max] = max(memoria_distancia(:,2));
 
@@ -141,7 +143,8 @@ eco = double(eco)/ 255;
 data_eco = eco(:);
 idx_eco = findClosestCentroids(data_eco, centroids);
 [SUPERIOR,INFERIOR] = MTvslength(idx_eco,C,img_size_eco,centroid_muscle_y,measure_x,measure_y,frame);
-%find(SUPERIOR(:,1) == INFERIOR(1))
+figure
+plot(INFERIOR(:,1),(INFERIOR(:,2) - SUPERIOR([find(SUPERIOR(:,1) == INFERIOR(1)):INFERIOR(end,1)],2)) .* param)
 
 v.CurrentTime = memoria_distancia((frame_max-1),1);
 eco = readFrame(v);    
@@ -150,7 +153,9 @@ eco = imcrop(eco,cut_area);
 eco = double(eco)/ 255;
 data_eco = eco(:);
 idx_eco = findClosestCentroids(data_eco, centroids);
-MTvslength(idx_eco,C,img_size_eco,centroid_muscle_y,measure_x,measure_y,frame)
+[SUPERIOR,INFERIOR] = MTvslength(idx_eco,C,img_size_eco,centroid_muscle_y,measure_x,measure_y,frame);
+figure
+plot(INFERIOR(:,1),(INFERIOR(:,2) - SUPERIOR([find(SUPERIOR(:,1) == INFERIOR(1)):INFERIOR(end,1)],2)) .* param)
 
 fprintf('%.4f %d \n',value_min, frame_min)
 fprintf('%.4f %d \n',value_max, frame_max)

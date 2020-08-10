@@ -31,7 +31,7 @@ function  [measure_apo_s,measure_apo_i] =  MTvslength(idx_eco,Centroids,img_size
         measure_apo_i(index,2) = find(apo_inferior(:,j),1,'first');
     end 
 
-%     measure(2) = measure(2) + centroid_muscle_y(:,2) - 1;
+    measure_apo_i(:,2) = measure_apo_i(:,2) + centroid_muscle_y(:,2) - 1;
 
     aponeurosis = apo_superior;
     aponeurosis(centroid_muscle_y(:,2):end,:) = logical(aponeurosis(centroid_muscle_y(:,2):end,:) + apo_inferior);%logical replace any number > 1 with 1
