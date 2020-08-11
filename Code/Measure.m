@@ -1,6 +1,7 @@
 %% Pruebas con videos
 clear
 clc
+close all
 
 %% Parameters 
 K = 4;%3 %try different values
@@ -48,7 +49,7 @@ figure
 set(gcf, 'Position', get(0, 'Screensize'));
 RI = imref2d(size(eco));
 frame = 0;
-tic
+
 
 while hasFrame(v)
     pause(0.001)
@@ -101,7 +102,7 @@ while hasFrame(v)
     
 %   ---- eco + plot ----
     subplot(1, 2, 1)
-    imshow(eco,RI)
+    imshow(labeloverlay(eco,aponeurosis_image),RI)
     title(sprintf('Frame: %d ', frame))
     hold on 
     plot([measure_x measure_x],[measure_y(2) measure_y(1)],'r-','LineWidth',3) 
@@ -113,13 +114,12 @@ while hasFrame(v)
     title(strcat('Stimulation Video: ', video_name))
     %ylim([60 120])
     xlabel('Frame')
-    ylabel('Pixels')
+    ylabel('[cm]')
     grid minor 
 end
 
-% memoria_distancia(:,2) = memoria_distancia(:,2) * param; %156 pixels / 2cm
-% toc
-% figure
+% memoria_distancia(:,2) = memoria_distancia(:,2); %156 pixels / 2cm
+% toc% figure
 % plot(memoria_distancia(:,2),'LineWidth',2)
 % title(strcat('Stimulation Video: ', video_name))
 % xlabel('Frame')
@@ -144,7 +144,9 @@ data_eco = eco(:);
 idx_eco = findClosestCentroids(data_eco, centroids);
 [SUPERIOR,INFERIOR] = MTvslength(idx_eco,C,img_size_eco,centroid_muscle_y,measure_x,measure_y,frame);
 figure
-plot(INFERIOR(:,1),(INFERIOR(:,2) - SUPERIOR([find(SUPERIOR(:,1) == INFERIOR(1)):INFERIOR(end,1)],2)) .* param)
+plot(INFERIOR(:,1),(INFERIOR(:,2) - SUPERIOR(find(SUPERIOR(:,1) == INFERIOR(1)):INFERIOR(end,1),2)) .* param)
+title('Before')
+grid minor
 
 v.CurrentTime = memoria_distancia((frame_max-1),1);
 eco = readFrame(v);    
@@ -155,7 +157,9 @@ data_eco = eco(:);
 idx_eco = findClosestCentroids(data_eco, centroids);
 [SUPERIOR,INFERIOR] = MTvslength(idx_eco,C,img_size_eco,centroid_muscle_y,measure_x,measure_y,frame);
 figure
-plot(INFERIOR(:,1),(INFERIOR(:,2) - SUPERIOR([find(SUPERIOR(:,1) == INFERIOR(1)):INFERIOR(end,1)],2)) .* param)
+plot(INFERIOR(:,1),(INFERIOR(:,2) - SUPERIOR(find(SUPERIOR(:,1) == INFERIOR(1)):INFERIOR(end,1),2)) .* param)
+title('After')
+grid minor
 
 fprintf('%.4f %d \n',value_min, frame_min)
 fprintf('%.4f %d \n',value_max, frame_max)
