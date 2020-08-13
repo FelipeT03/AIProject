@@ -20,14 +20,13 @@ cut_area = [30 25 595 487];
 param = 0.0121;
 
 %% Training
-
+tic
 v = VideoReader(strcat(path_v,video_name));
 memoria_distancia = zeros(round(v.FrameRate * v.Duration),2);% ->length of memoria_distancia
 
 eco = readFrame(v);
-
-eco = imcrop(eco,cut_area);
 eco = rgb2gray(eco);
+eco = imcrop(eco,cut_area);
 eco = double(eco);
 eco = eco / 255;% max(eco,[],'all'); % range(0-1)
 
@@ -56,10 +55,8 @@ while hasFrame(v)
     pause(0.001)
     frame = frame + 1;
     eco = readFrame(v);
-    
     eco = imcrop(eco,cut_area);
     eco = rgb2gray(eco);
-
     eco = double(eco);
     eco = eco / 255; % range(0-1)
     
@@ -119,7 +116,7 @@ while hasFrame(v)
     ylabel('[cm]')
     grid minor 
 end
-
+toc
 % memoria_distancia(:,2) = memoria_distancia(:,2); %156 pixels / 2cm
 % toc% figure
 % plot(memoria_distancia(:,2),'LineWidth',2)
