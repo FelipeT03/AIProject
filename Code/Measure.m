@@ -9,14 +9,14 @@ K = 4;%3 %try different values
 numberOfK_muscle = 2;
 threshold = 10/100;%Porcentaje para treshold
 max_iters = 100; 
-measure_x = 100;%value of x (coordinate)
+measure_x = 245;%value of x (coordinate)
 measure_y = [];
 C = eye(K);
 centroids = NaN;
 %video_name = '3.mp4';
 %path_v = 'C:/Users/ftosc/Documents/Tohoku University/Videos/06.17/';%04.21/'
 [video_name,path_v] = uigetfile('*.*','Select Video File');
-cut_area = [177 30 283 481];
+cut_area = [30 25 595 487];
 param = 0.0121;
 
 %% Training
@@ -129,39 +129,44 @@ end
 % grid minor 
 
 %% MT vs length
-
-[value_min, frame_min] = min(memoria_distancia(:,2));
-[value_max, frame_max] = max(memoria_distancia(:,2));
-
-if (frame_min-1) > 0
-    v.CurrentTime = memoria_distancia((frame_min-1),1);
-else 
-    v.CurrentTime = 0;
-end
-eco = readFrame(v); 
-eco = imcrop(eco,cut_area);
-eco = rgb2gray(eco);
-eco = double(eco)/ 255;
-data_eco = eco(:);
-idx_eco = findClosestCentroids(data_eco, centroids);
-[SUPERIOR,INFERIOR] = MTvslength(idx_eco,C,img_size_eco,centroid_muscle_y,measure_x,measure_y,frame);
-figure
-plot(INFERIOR(:,1),(INFERIOR(:,2) - SUPERIOR(find(SUPERIOR(:,1) == INFERIOR(1)):INFERIOR(end,1),2)) .* param)
-title('Before')
-grid minor
-
-v.CurrentTime = memoria_distancia((frame_max-1),1);
-eco = readFrame(v);    
-eco = rgb2gray(eco);
-eco = imcrop(eco,cut_area);
-eco = double(eco)/ 255;
-data_eco = eco(:);
-idx_eco = findClosestCentroids(data_eco, centroids);
-[SUPERIOR,INFERIOR] = MTvslength(idx_eco,C,img_size_eco,centroid_muscle_y,measure_x,measure_y,frame);
-figure
-plot(INFERIOR(:,1),(INFERIOR(:,2) - SUPERIOR(find(SUPERIOR(:,1) == INFERIOR(1)):INFERIOR(end,1),2)) .* param)
-title('After')
-grid minor
-
-fprintf('%.4f %d \n',value_min, frame_min)
-fprintf('%.4f %d \n',value_max, frame_max)
+% En esta versión se debe corregir el momento de hacer el plot porque la
+% fascia superior esta diseñada para estar en todo x pero al aumentar la
+% zona de corte esto ya no es posible. Se debe realizar el mismo
+% procedimiento que la fascia inferior que no está en todo x. No se corrige
+% en este momento porque se plane cambiar el algoritmo de detección
+% primero. 
+% [value_min, frame_min] = min(memoria_distancia(:,2));
+% [value_max, frame_max] = max(memoria_distancia(:,2));
+% 
+% if (frame_min-1) > 0
+%     v.CurrentTime = memoria_distancia((frame_min-1),1);
+% else 
+%     v.CurrentTime = 0;
+% end
+% eco = readFrame(v); 
+% eco = imcrop(eco,cut_area);
+% eco = rgb2gray(eco);
+% eco = double(eco)/ 255;
+% data_eco = eco(:);
+% idx_eco = findClosestCentroids(data_eco, centroids);
+% [SUPERIOR,INFERIOR] = MTvslength(idx_eco,C,img_size_eco,centroid_muscle_y,measure_x,measure_y,frame);
+% figure
+% plot(INFERIOR(:,1),(INFERIOR(:,2) - SUPERIOR(find(SUPERIOR(:,1) == INFERIOR(1)):INFERIOR(end,1),2)) .* param)
+% title('Before')
+% grid minor
+% 
+% v.CurrentTime = memoria_distancia((frame_max-1),1);
+% eco = readFrame(v);    
+% eco = rgb2gray(eco);
+% eco = imcrop(eco,cut_area);
+% eco = double(eco)/ 255;
+% data_eco = eco(:);
+% idx_eco = findClosestCentroids(data_eco, centroids);
+% [SUPERIOR,INFERIOR] = MTvslength(idx_eco,C,img_size_eco,centroid_muscle_y,measure_x,measure_y,frame);
+% figure
+% plot(INFERIOR(:,1),(INFERIOR(:,2) - SUPERIOR(find(SUPERIOR(:,1) == INFERIOR(1)):INFERIOR(end,1),2)) .* param)
+% title('After')
+% grid minor
+% 
+% fprintf('%.4f %d \n',value_min, frame_min)
+% fprintf('%.4f %d \n',value_max, frame_max)
