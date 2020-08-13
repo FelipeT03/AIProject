@@ -1,4 +1,5 @@
 %% Pruebas con videos
+
 clear
 clc
 close all
@@ -25,10 +26,10 @@ memoria_distancia = zeros(round(v.FrameRate * v.Duration),2);% ->length of memor
 
 eco = readFrame(v);
 
-eco = rgb2gray(eco);
 eco = imcrop(eco,cut_area);
+eco = rgb2gray(eco);
 eco = double(eco);
-eco = eco / 255; % range(0-1)
+eco = eco / 255;% max(eco,[],'all'); % range(0-1)
 
 data_eco = eco(:);
 img_size_eco = size(eco);
@@ -56,8 +57,9 @@ while hasFrame(v)
     frame = frame + 1;
     eco = readFrame(v);
     
-    eco = rgb2gray(eco);
     eco = imcrop(eco,cut_area);
+    eco = rgb2gray(eco);
+
     eco = double(eco);
     eco = eco / 255; % range(0-1)
     
@@ -136,9 +138,9 @@ if (frame_min-1) > 0
 else 
     v.CurrentTime = 0;
 end
-eco = readFrame(v);    
-eco = rgb2gray(eco);
+eco = readFrame(v); 
 eco = imcrop(eco,cut_area);
+eco = rgb2gray(eco);
 eco = double(eco)/ 255;
 data_eco = eco(:);
 idx_eco = findClosestCentroids(data_eco, centroids);
@@ -163,5 +165,3 @@ grid minor
 
 fprintf('%.4f %d \n',value_min, frame_min)
 fprintf('%.4f %d \n',value_max, frame_max)
-
-
