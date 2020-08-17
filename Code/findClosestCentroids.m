@@ -8,6 +8,5 @@ function idx = findClosestCentroids(X, centroids)
         error_c(:,f) = sum((X - centroids(f,:)).^2,2);
     end
     [Y, idx] = min(error_c,[],2);
-
 end
 
