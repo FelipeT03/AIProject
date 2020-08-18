@@ -2,7 +2,7 @@ function centroidsSupApo = findCentrSupApo(eco)
 %Encuentra los centroides de luminancia para fascia superior
     %% Parameters
     K = 2;
-    threshold = 20/100;%Porcentaje para treshold
+    threshold = 30/100;%Porcentaje para treshold
     max_iters = 100; 
     centroids = NaN;
     %% Tratamiento de los datos
