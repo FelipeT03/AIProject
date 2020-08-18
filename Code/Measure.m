@@ -8,15 +8,8 @@ clc
 close all
 
 %% Parameters 
-%K = 5;
-%numberOfK_muscle = 2;
 threshold = 1/100;%Porcentaje para treshold
-%max_iters = 100; %Iteraciones para el entrenamiento
 param = 0.121;%Factor de escalamiento
-%measure_x = 290;%value of x (coordinate)
-%measure_y = [];
-%C = eye(K);
-%centroids = NaN;
 [video_name,path_v] = uigetfile('*.*','Select Video File');
 cut_area = [30 25 595 487];%área de análisis
 v = VideoReader(strcat(path_v,video_name));
@@ -40,7 +33,7 @@ eco = eco / max(eco,[],'all'); % range(0-1)
 centroidsInfApo = findCentrInfApo(eco);
 
 % Centroides para Aponeurosis Superior
-centroidsSupApo = findCentrSupApo(eco);
+centroidsSupApo = findCentrSupApo(eco(1:muscle_y,:));
 
 
 %% Results
@@ -64,22 +57,26 @@ while hasFrame(v)
     eco = eco / max(eco,[],'all');
     %Vector con los valores, en pixeles, de los límites a medir
     [x_InfApo,y_InfApo] = findInfAponeurosis(eco,centroidsInfApo);
-    [x_SupApo,y_SupApo] = findSupAponeurosis(eco,centroidsSupApo);
+    [x_SupApo,y_SupApo] = findSupAponeurosis(eco(1:muscle_y,:),centroidsSupApo);
     %Cálculo de la distancia en [mm] 
-    memoria_distancia(frame) = (y_InfApo(x_InfApo == muscle_x) - y_SupApo(x_SupApo == muscle_x)) * param;
+    measure_y_inf = y_InfApo(x_InfApo == muscle_x);
+    measure_y_sup = y_SupApo(x_SupApo == muscle_x);
+    memoria_distancia(frame) = (measure_y_inf - measure_y_sup) * param;
     %Escalamineto de los límites de las fascias de pixeles a [mm]
     x_InfApo = param * x_InfApo;
     y_InfApo = param * y_InfApo;
     x_SupApo = param * x_SupApo;
     y_SupApo = param * y_SupApo;
+    measure_y_inf = param * measure_y_inf;
+    measure_y_sup = param * measure_y_sup;
 %%   ---- eco + plot ----
     subplot(1, 2, 1)
     imshow(eco,RI)
     title(sprintf('Frame: %d ', frame))
     hold on 
-    plot(x_InfApo,y_InfApo,'r-','LineWidth',3) 
-    plot(x_SupApo,y_SupApo,'y-','LineWidth',3) 
-
+    plot(x_InfApo,y_InfApo,'r-') 
+    plot(x_SupApo,y_SupApo,'y-') 
+    plot([muscle_x muscle_x] * param,[measure_y_inf measure_y_sup],'LineWidth',3)
     hold off
     xlabel('[mm]')
     ylabel('[mm]')
