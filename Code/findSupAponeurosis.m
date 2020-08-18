@@ -32,5 +32,5 @@ function [x_SupApo,y_SupApo] = findSupAponeurosis(eco, centroids)
     end
     x_SupApo = vector(:,1);
     y_SupApo = vector(:,2);
-    %y_SupApo = smooth(x_SupApo,y_SupApo);%,0.2,'rloess'); %Use a span of 10% of the total number of data points.
+    y_SupApo = smooth(x_SupApo,y_SupApo,0.2,'rloess'); %Use a span of 10% of the total number of data points.
 end 

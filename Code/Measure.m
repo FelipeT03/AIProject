@@ -1,6 +1,7 @@
 %% Pruebas con videos
 %Lista de Toolbox:
 %- Image Processing Toolbox 
+%- Curve Fitting Toolbox  
 %% Limpieza del área de trabajo
 clear
 clc

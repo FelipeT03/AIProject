@@ -41,7 +41,7 @@ function [x_InfApo,y_InfApo] = findInfAponeurosis(eco,centroids)
     end
     x_InfApo = vector(:,1);
     y_InfApo = vector(:,2);
-    %y_InfApo = smooth(vector(:,1),y_InfApo);%,0.2,'rloess'); %Use a span of 20% of the total number of data points.
+    y_InfApo = smooth(vector(:,1),y_InfApo,0.2,'rloess'); %Use a span of 20% of the total number of data points.
 end
 
 
