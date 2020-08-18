@@ -1,7 +1,7 @@
 %% Pruebas con videos
 %Lista de Toolbox:
 %- Image Processing Toolbox 
-%- Curve Fitting Toolbox  
+%- Curve Fitting Toolbox
 %% Limpieza del área de trabajo
 clear
 clc
@@ -14,7 +14,7 @@ threshold = 1/100;%Porcentaje para treshold
 %max_iters = 100; %Iteraciones para el entrenamiento
 param = 0.121;%Factor de escalamiento
 measure_x = 290;%value of x (coordinate)
-measure_y = [];
+%measure_y = [];
 %C = eye(K);
 %centroids = NaN;
 [video_name,path_v] = uigetfile('*.*','Select Video File');
@@ -32,6 +32,8 @@ eco = rgb2gray(eco);
 eco = imcrop(eco,cut_area);
 eco = double(eco);
 eco = eco / max(eco,[],'all'); % range(0-1)
+
+[muscle_x, muscle_y] = muscle_x_y(eco);
 
 % Centroides para Aponeurosis Inferior
 centroidsInfApo = findCentrInfApo(eco);
