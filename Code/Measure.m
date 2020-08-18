@@ -13,7 +13,7 @@ close all
 threshold = 1/100;%Porcentaje para treshold
 %max_iters = 100; %Iteraciones para el entrenamiento
 param = 0.121;%Factor de escalamiento
-measure_x = 290;%value of x (coordinate)
+%measure_x = 290;%value of x (coordinate)
 %measure_y = [];
 %C = eye(K);
 %centroids = NaN;
@@ -33,6 +33,7 @@ eco = imcrop(eco,cut_area);
 eco = double(eco);
 eco = eco / max(eco,[],'all'); % range(0-1)
 
+%Punto medio en x & y del musculo
 [muscle_x, muscle_y] = muscle_x_y(eco);
 
 % Centroides para Aponeurosis Inferior
@@ -65,7 +66,7 @@ while hasFrame(v)
     [x_InfApo,y_InfApo] = findInfAponeurosis(eco,centroidsInfApo);
     [x_SupApo,y_SupApo] = findSupAponeurosis(eco,centroidsSupApo);
     %Cálculo de la distancia en [mm] 
-    memoria_distancia(frame) = (y_InfApo(x_InfApo == measure_x) - y_SupApo(x_SupApo == measure_x))*param;
+    memoria_distancia(frame) = (y_InfApo(x_InfApo == muscle_x) - y_SupApo(x_SupApo == muscle_x)) * param;
     %Escalamineto de los límites de las fascias de pixeles a [mm]
     x_InfApo = param * x_InfApo;
     y_InfApo = param * y_InfApo;
@@ -78,6 +79,7 @@ while hasFrame(v)
     hold on 
     plot(x_InfApo,y_InfApo,'r-','LineWidth',3) 
     plot(x_SupApo,y_SupApo,'y-','LineWidth',3) 
+
     hold off
     xlabel('[mm]')
     ylabel('[mm]')

@@ -19,6 +19,6 @@ function [muscle_x, muscle_y ] = muscle_x_y(eco)
     eco_C = eco > mean(centroids);
     eco_C = findLargestArea(eco_C);
     [row,col] = find(eco_C);
-    muscle_y = round((min(row) + max(row))) / 2;
-    muscle_x = round((min(col) + max(col))) / 2;
+    muscle_y = round((min(row) + max(row)) / 2);
+    muscle_x = round((min(col) + max(col)) / 2);
 end 
