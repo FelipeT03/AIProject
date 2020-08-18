@@ -6,7 +6,7 @@
 clear
 clc
 close all
-
+%comentario
 %% Parameters 
 threshold = 1/100;%Porcentaje para treshold
 param = 0.121;%Factor de escalamiento
