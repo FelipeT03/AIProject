@@ -1,26 +1,23 @@
-function [x_InfApo,y_InfApo] = findInfAponeurosis(eco,centroids)
+function [x_InfApo,y_InfApo] = findInfAponeurosis(eco,centroids,ajuste,muscle_x_min, muscle_x_max)
 %Encuentra el límite inferior de la fascia inferior y devuelve su posición
 %en un vector(x,y) utilizando los centroides de luminancia proporcionados
-
     K = 2;
     C = eye(K);
     img_size_eco = size(eco);
     idx_eco = findClosestCentroids(eco(:), centroids);
-    C_K = C(:,2);
+    C_K = C(:,K);
     eco_C = C_K(idx_eco,:);%Imagen b/n
+    
     %% Tratamiento de la imagen hasta conseguir una sola figura 
     eco_C = reshape(eco_C, img_size_eco(1), img_size_eco(2), 1);
-%     CC = bwconncomp(eco_C, 8);
-%     S = regionprops(CC, 'Area');
-%     Areas = sort([S.Area],'descend');
-%     eco_C = bwareaopen(eco_C,Areas(3));
-%     
-%     figure
-%     imshow(eco_C) 
-%     pause()
-%     se90 = strel('line',12,90); 
-%     se0 = strel('line',25,0);
-%     eco_C = imdilate(eco_C,[se90 se0]);
+    eco_C(1:ajuste,muscle_x_min:muscle_x_max) = 1;
+    CC = bwconncomp(eco_C, 8);
+    S = regionprops(CC, 'Area');
+    Areas = sort([S.Area],'descend');
+    eco_C = bwareaopen(eco_C,Areas(3));
+    se90 = strel('line',5,90); 
+    se0 = strel('line',30,0);
+    eco_C = imdilate(eco_C,[se90 se0]);
     eco_C = imfill(eco_C,'holes');%Imagen rellena espacios libres dentro de un elemento 
 
 
@@ -32,7 +29,20 @@ function [x_InfApo,y_InfApo] = findInfAponeurosis(eco,centroids)
     seD = strel('rectangle',[3 3]); 
     eco_C = imerode(eco_C,seD); 
     eco_C = imerode(eco_C,seD);
+
     eco_C = findLargestArea(eco_C);
+   
+%     CC = bwconncomp(eco_C, 8);
+%     S = regionprops(CC, 'Centroid','Area');
+%     centroid_y = zeros(length([S.Area]),2);
+%     for j = 1:size(centroid_y)
+%         centroid_y(j,:) = [S(j).Centroid];
+%     end
+%     centroid_y = centroid_y(:,2);
+%     [c,nArea] = min(centroid_y);
+%     Areas = [S.Area];
+%     L = labelmatrix(CC);
+%     eco_C = ismember(L, find([S.Area] == Areas(nArea))); 
 
 %     eco_C_outline = bwperim(eco_C); 
 %     Segout_eco = eco;  
@@ -53,7 +63,7 @@ function [x_InfApo,y_InfApo] = findInfAponeurosis(eco,centroids)
     end
     x_InfApo = vector(:,1);
     y_InfApo = vector(:,2);
-    y_InfApo = smooth(vector(:,1),y_InfApo,0.2,'rloess'); %Use a span of 20% of the total number of data points.
+    y_InfApo = smooth(vector(:,1),y_InfApo,0.2,'rloess'); %Use a span of 10% of the total number of data points.
 end
 
 
