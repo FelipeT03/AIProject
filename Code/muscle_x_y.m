@@ -1,4 +1,4 @@
-function [muscle_x, muscle_y ] = muscle_x_y(eco)
+function [muscle_x, muscle_y,muscle_y_min,muscle_y_max] = muscle_x_y(eco)
 %Encuentra en los centroides para el cálculo de la Apo inferior
     %% Parameters
     K = 2;
@@ -21,4 +21,6 @@ function [muscle_x, muscle_y ] = muscle_x_y(eco)
     [row,col] = find(eco_C);
     muscle_y = round((min(row) + max(row)) / 2);
     muscle_x = round((min(col) + max(col)) / 2);
+    muscle_y_max = max(row);
+    muscle_y_min = min(row);
 end 

@@ -10,7 +10,19 @@ function [x_InfApo,y_InfApo] = findInfAponeurosis(eco,centroids)
     eco_C = C_K(idx_eco,:);%Imagen b/n
     %% Tratamiento de la imagen hasta conseguir una sola figura 
     eco_C = reshape(eco_C, img_size_eco(1), img_size_eco(2), 1);
+%     CC = bwconncomp(eco_C, 8);
+%     S = regionprops(CC, 'Area');
+%     Areas = sort([S.Area],'descend');
+%     eco_C = bwareaopen(eco_C,Areas(3));
+%     
+%     figure
+%     imshow(eco_C) 
+%     pause()
+%     se90 = strel('line',12,90); 
+%     se0 = strel('line',25,0);
+%     eco_C = imdilate(eco_C,[se90 se0]);
     eco_C = imfill(eco_C,'holes');%Imagen rellena espacios libres dentro de un elemento 
+
 
 %     eco_C = findLargestArea(eco_C);
 %     centroid_y = regionprops(logical(sum(eco_C,2)),'Centroid');%calculo del centroide en y 

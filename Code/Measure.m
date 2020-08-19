@@ -2,22 +2,22 @@
 %Lista de Toolbox:
 %- Image Processing Toolbox 
 %- Curve Fitting Toolbox
-%% Limpieza del área de trabajo
+%% Limpieza del area de trabajo
 clear
 clc
 close all
-%comentario
+
 %% Parameters 
 threshold = 1/100;%Porcentaje para treshold
 param = 0.121;%Factor de escalamiento
 [video_name,path_v] = uigetfile('*.*','Select Video File');
-cut_area = [30 25 595 487];%área de análisis
+cut_area = [30 25 595 487];%ï¿½rea de anï¿½lisis
 v = VideoReader(strcat(path_v,video_name));
 memoria_distancia = zeros(round(v.FrameRate * v.Duration),1);% ->length of memoria_distancia
 
 %% Training
 %Se entrena el modelo utilizando el primer frame del video, con esto
-%logramos obtener los centroides de luminancia válidos para todo el video
+%logramos obtener los centroides de luminancia vï¿½lidos para todo el video
 
 %Frame en escala de grises y con rango de 0 a 1
 eco = readFrame(v);
@@ -27,10 +27,11 @@ eco = double(eco);
 eco = eco / max(eco,[],'all'); % range(0-1)
 
 %Punto medio en x & y del musculo
-[muscle_x, muscle_y] = muscle_x_y(eco);
+[muscle_x, muscle_y,muscle_y_min,muscle_y_max] = muscle_x_y(eco);
+%ajuste = round((muscle_y_max - muscle_y_min) * 0.17);
 
 % Centroides para Aponeurosis Inferior
-centroidsInfApo = findCentrInfApo(eco);
+centroidsInfApo = findCentrInfApo(eco(muscle_y+1:muscle_y_max ,:));
 
 % Centroides para Aponeurosis Superior
 centroidsSupApo = findCentrSupApo(eco(1:muscle_y,:));
@@ -55,14 +56,15 @@ while hasFrame(v)
     eco = rgb2gray(eco);
     eco = double(eco);
     eco = eco / max(eco,[],'all');
-    %Vector con los valores, en pixeles, de los límites a medir
-    [x_InfApo,y_InfApo] = findInfAponeurosis(eco,centroidsInfApo);
+    %Vector con los valores, en pixeles, de los lï¿½mites a medir
+    [x_InfApo,y_InfApo] = findInfAponeurosis(eco(muscle_y+1:muscle_y_max ,:),centroidsInfApo);
+    y_InfApo = y_InfApo + muscle_y + 1; 
     [x_SupApo,y_SupApo] = findSupAponeurosis(eco(1:muscle_y,:),centroidsSupApo);
-    %Cálculo de la distancia en [mm] 
+    %Cï¿½lculo de la distancia en [mm] 
     measure_y_inf = y_InfApo(x_InfApo == muscle_x);
     measure_y_sup = y_SupApo(x_SupApo == muscle_x);
     memoria_distancia(frame) = (measure_y_inf - measure_y_sup) * param;
-    %Escalamineto de los límites de las fascias de pixeles a [mm]
+    %Escalamineto de los lï¿½mites de las fascias de pixeles a [mm]
     x_InfApo = param * x_InfApo;
     y_InfApo = param * y_InfApo;
     x_SupApo = param * x_SupApo;
@@ -100,11 +102,11 @@ end
 % grid minor 
 
 %% MT vs length
-% En esta versión se debe corregir el momento de hacer el plot porque la
-% fascia superior esta diseñada para estar en todo x pero al aumentar la
+% En esta versiï¿½n se debe corregir el momento de hacer el plot porque la
+% fascia superior esta diseï¿½ada para estar en todo x pero al aumentar la
 % zona de corte esto ya no es posible. Se debe realizar el mismo
-% procedimiento que la fascia inferior que no está en todo x. No se corrige
-% en este momento porque se plane cambiar el algoritmo de detección
+% procedimiento que la fascia inferior que no estï¿½ en todo x. No se corrige
+% en este momento porque se plane cambiar el algoritmo de detecciï¿½n
 % primero. 
 % [value_min, frame_min] = min(memoria_distancia(:,2));
 % [value_max, frame_max] = max(memoria_distancia(:,2));
