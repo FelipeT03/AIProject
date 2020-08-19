@@ -31,7 +31,6 @@ eco = eco / max(eco,[],'all'); % range(0-1)
 imshow(eco)
 prompt = 'Punto más alto de fascia inferior ';
 x = input(prompt);
-
 ajuste = round((x- muscle_y) * 0.9);
 
 % Centroides para Aponeurosis Inferior
