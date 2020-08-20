@@ -14,7 +14,11 @@ function [x_InfApo,y_InfApo] = findInfAponeurosis(eco,centroids,ajuste)
     CC = bwconncomp(eco_C, 8);
     S = regionprops(CC, 'Area');
     Areas = sort([S.Area],'descend');
-    eco_C = bwareaopen(eco_C,Areas(3));
+    if length([S.Area]) >= 3
+        eco_C = bwareaopen(eco_C,Areas(3));
+    else 
+        eco_C = bwareaopen(eco_C,Areas(length([S.Area])));
+    end
     se90 = strel('line',5,90); 
     se0 = strel('line',30,0);
     eco_C = imdilate(eco_C,[se90 se0]);

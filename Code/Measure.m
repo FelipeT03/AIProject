@@ -24,6 +24,7 @@ movimiento = zeros(round(v.FrameRate * v.Duration),2);
 eco = readFrame(v);
 eco = rgb2gray(eco);
 eco = imcrop(eco,cut_area);
+eco = imadjust(eco);
 eco = double(eco);
 eco = eco / max(eco,[],'all'); % range(0-1)
 
@@ -72,13 +73,14 @@ while hasFrame(v)
     eco = readFrame(v);
     eco = imcrop(eco,cut_area);
     eco = rgb2gray(eco);
+    eco = imadjust(eco);
     eco = double(eco);
     eco = eco / max(eco,[],'all');
     %Vector con los valores, en pixeles, de los límites a medir
     [x_InfApo,y_InfApo] = findInfAponeurosis(eco(muscle_y+1:end ,:),centroidsInfApo,ajuste);
     y_InfApo = y_InfApo + muscle_y; 
     [x_SupApo,y_SupApo] = findSupAponeurosis(eco(1:muscle_y,:),centroidsSupApo);
-    %Cï¿½lculo de la distancia en [mm] 
+    %Cálculo de la distancia en [mm] 
     measure_y_inf = y_InfApo(x_InfApo == muscle_x);
     measure_y_sup = y_SupApo(x_SupApo == muscle_x);
     memoria_distancia(frame) = (measure_y_inf - measure_y_sup) * param;

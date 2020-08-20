@@ -22,7 +22,11 @@ function [x_SupApo,y_SupApo] = findSupAponeurosis(eco, centroids)
     CC = bwconncomp(eco_C, 8);
     S = regionprops(CC, 'Area');
     Areas = sort([S.Area],'descend');
-    eco_C = bwareaopen(eco_C,Areas(2));
+    if length([S.Area]) >= 2
+        eco_C = bwareaopen(eco_C,Areas(2));
+    else 
+        eco_C = bwareaopen(eco_C,Areas(length([S.Area])));
+    end
 
     %Encuentra el area mas cercana al centro
     CC = bwconncomp(eco_C, 8);
