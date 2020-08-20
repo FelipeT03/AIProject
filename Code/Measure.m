@@ -1,5 +1,6 @@
 %% Pruebas con videos
 %Lista de Toolbox:
+%- Computer Vision System Toolbox 
 %- Image Processing Toolbox 
 %- Curve Fitting Toolbox
 %% Limpieza del área de trabajo
@@ -10,7 +11,7 @@ close all
 %% Parameters 
 param = 0.121;%Factor de escalamiento
 [video_name,path_v] = uigetfile('*.*','Select Video File');
-cut_area = [30 25 595 487];%área de análisis
+cut_area = [30 25 595 400];%área de análisis [30 25 595 487]
 v = VideoReader(strcat(path_v,video_name));
 memoria_distancia = zeros(round(v.FrameRate * v.Duration),1);% ->length of memoria_distancia
 movimiento = zeros(round(v.FrameRate * v.Duration),2);
@@ -28,6 +29,8 @@ eco = eco / max(eco,[],'all'); % range(0-1)
 
 %Punto medio en x & y del musculo
 [muscle_x, muscle_y, muscle_x_min, muscle_x_max] = muscle_x_y(eco);
+cut_area(1) = cut_area(1) + muscle_x_min - 1;
+cut_area(3) = muscle_x_max - muscle_x_min;
 imshow(eco)
 prompt = 'Punto más alto de fascia inferior ';
 x = input(prompt);
@@ -51,7 +54,7 @@ while hasFrame(v)
     movimiento(frame,2) = sum([flow.Magnitude],'all');
 end
 movimiento(1:10,:) = [];
-[pks,locs] = findpeaks(movimiento(:,2),movimiento(:,1),'SortStr','descend');
+[pks,locs] = findpeaks(movimiento(:,2),movimiento(:,1),'SortStr','descend','MinPeakDistance',5);
 
 %% Results
 %Uso de los centroides del primer frame en todos los frames del video
@@ -60,7 +63,6 @@ v.CurrentTime = 0;%Rewind to the beginning
 
 figure
 set(gcf, 'Position', get(0, 'Screensize'));
-RI = imref2d(size(eco),param,param);
 frame = 0;
 
 
@@ -73,7 +75,7 @@ while hasFrame(v)
     eco = double(eco);
     eco = eco / max(eco,[],'all');
     %Vector con los valores, en pixeles, de los límites a medir
-    [x_InfApo,y_InfApo] = findInfAponeurosis(eco(muscle_y+1:end ,:),centroidsInfApo,ajuste,muscle_x_min, muscle_x_max);
+    [x_InfApo,y_InfApo] = findInfAponeurosis(eco(muscle_y+1:end ,:),centroidsInfApo,ajuste);
     y_InfApo = y_InfApo + muscle_y; 
     [x_SupApo,y_SupApo] = findSupAponeurosis(eco(1:muscle_y,:),centroidsSupApo);
     %Cï¿½lculo de la distancia en [mm] 
@@ -89,7 +91,7 @@ while hasFrame(v)
     measure_y_sup = param * measure_y_sup;
 %%   ---- eco + plot ----
     subplot(1, 2, 1)
-    imshow(eco,RI)
+    imshow(eco,imref2d(size(eco),param,param))
     title(sprintf('Frame: %d ', frame))
     hold on 
     plot(x_InfApo,y_InfApo,'r--','LineWidth',3) 
@@ -111,16 +113,6 @@ while hasFrame(v)
     ylabel('[mm]')
     grid minor    
 end
-
-
-
-% memoria_distancia(:,2) = memoria_distancia(:,2); %156 pixels / 2cm
-% toc% figure
-% plot(memoria_distancia(:,2),'LineWidth',2)
-% title(strcat('Stimulation Video: ', video_name))
-% xlabel('Frame')
-% ylabel('Pixels')
-% grid minor 
 
 %% MT vs length
 % En esta versión se debe corregir el momento de hacer el plot porque la

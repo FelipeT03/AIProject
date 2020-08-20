@@ -17,5 +17,5 @@ function [muscle_x, muscle_y, muscle_x_min, muscle_x_max] = muscle_x_y(eco)
     muscle_x = round((min(col) + max(col)) / 2);
     muscle_x_min = min(col);
     muscle_x_max = max(col);
-    
+    muscle_x = muscle_x -  muscle_x_min; %Al recortar la imagen se debe ajustar el centro
 end 
