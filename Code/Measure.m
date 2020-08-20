@@ -56,7 +56,7 @@ while hasFrame(v)
 end
 movimiento(1:10,:) = [];
 [pks,locs] = findpeaks(movimiento(:,2),movimiento(:,1),'SortStr','descend','MinPeakDistance',5);
-
+locs = sort(locs(1:2));
 %% Results
 %Uso de los centroides del primer frame en todos los frames del video
 
