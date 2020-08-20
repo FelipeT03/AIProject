@@ -13,7 +13,7 @@ param = 0.121;%Factor de escalamiento
 [video_name,path_v] = uigetfile('*.*','Select Video File');
 cut_area = [30 25 595 400];%área de análisis [30 25 595 487]
 v = VideoReader(strcat(path_v,video_name));
-memoria_distancia = zeros(round(v.FrameRate * v.Duration),1);% ->length of memoria_distancia
+memoria_distancia = zeros(round(v.FrameRate * v.Duration),2);% ->length of memoria_distancia
 movimiento = zeros(round(v.FrameRate * v.Duration),2);
 
 %% Training
@@ -83,7 +83,8 @@ while hasFrame(v)
     %Cálculo de la distancia en [mm] 
     measure_y_inf = y_InfApo(x_InfApo == muscle_x);
     measure_y_sup = y_SupApo(x_SupApo == muscle_x);
-    memoria_distancia(frame) = (measure_y_inf - measure_y_sup) * param;
+    memoria_distancia(frame,1) = v.CurrentTime;
+    memoria_distancia(frame,2) = (measure_y_inf - measure_y_sup) * param;
     %Escalamineto de los límites de las fascias de pixeles a [mm]
     x_InfApo = param * x_InfApo;
     y_InfApo = param * y_InfApo;
@@ -93,68 +94,115 @@ while hasFrame(v)
     measure_y_sup = param * measure_y_sup;
 %%   ---- eco + plot ----
     subplot(1, 2, 1)
-    imshow(eco,imref2d(size(eco),param,param))
-    title(sprintf('Frame: %d ', frame))
-    hold on 
-    plot(x_InfApo,y_InfApo,'r--','LineWidth',3) 
-    plot(x_SupApo,y_SupApo,'r--','LineWidth',3) 
-    plot([muscle_x muscle_x] * param,[measure_y_inf measure_y_sup],'yo','LineWidth',3)
-    plot([muscle_x muscle_x] * param,[measure_y_inf measure_y_sup],'y-','LineWidth',3)
-    hold off
-    xlabel('[mm]')
-    ylabel('[mm]')
+        imshow(eco,imref2d(size(eco),param,param))
+        title(sprintf('Frame: %d ', frame))
+        hold on 
+        plot(x_InfApo,y_InfApo,'r--','LineWidth',3) 
+        plot(x_SupApo,y_SupApo,'r--','LineWidth',3) 
+        plot([muscle_x muscle_x] * param,[measure_y_inf measure_y_sup],'yo','LineWidth',3)
+        plot([muscle_x muscle_x] * param,[measure_y_inf measure_y_sup],'y-','LineWidth',3)
+        hold off
+        xlabel('[mm]')
+        ylabel('[mm]')
     
     subplot(1, 2, 2)
-    plot(memoria_distancia,'LineWidth',2)
-    hold on 
-    xline(locs(1),'--','LineWidth',2);
-    xline(locs(2),'--','LineWidth',2);
-    hold off
-    title(strcat('Stimulation Video: ', video_name))
-    xlabel('Frame')
-    ylabel('[mm]')
-    grid minor    
+        plot(memoria_distancia(:,2),'LineWidth',2)
+        hold on 
+        xline(locs(1),'--','LineWidth',2);
+        xline(locs(2),'--','LineWidth',2);
+        hold off
+        title(strcat('Stimulation Video: ', video_name))
+        xlabel('Frame')
+        ylabel('[mm]')
+        grid minor    
 end
 
 %% MT vs length
-% En esta versión se debe corregir el momento de hacer el plot porque la
-% fascia superior esta diseñada para estar en todo x pero al aumentar la
-% zona de corte esto ya no es posible. Se debe realizar el mismo
-% procedimiento que la fascia inferior que no estï¿½ en todo x. No se corrige
-% en este momento porque se plane cambiar el algoritmo de detecciï¿½n
-% primero. 
-% [value_min, frame_min] = min(memoria_distancia(:,2));
-% [value_max, frame_max] = max(memoria_distancia(:,2));
-% 
-% if (frame_min-1) > 0
-%     v.CurrentTime = memoria_distancia((frame_min-1),1);
-% else 
-%     v.CurrentTime = 0;
-% end
-% eco = readFrame(v); 
-% eco = imcrop(eco,cut_area);
-% eco = rgb2gray(eco);
-% eco = double(eco)/ 255;
-% data_eco = eco(:);
-% idx_eco = findClosestCentroids(data_eco, centroids);
-% [SUPERIOR,INFERIOR] = MTvslength(idx_eco,C,img_size_eco,centroid_muscle_y,measure_x,measure_y,frame);
-% figure
-% plot(INFERIOR(:,1),(INFERIOR(:,2) - SUPERIOR(find(SUPERIOR(:,1) == INFERIOR(1)):INFERIOR(end,1),2)) .* param)
-% title('Before')
-% grid minor
-% 
-% v.CurrentTime = memoria_distancia((frame_max-1),1);
-% eco = readFrame(v);    
-% eco = rgb2gray(eco);
-% eco = imcrop(eco,cut_area);
-% eco = double(eco)/ 255;
-% data_eco = eco(:);
-% idx_eco = findClosestCentroids(data_eco, centroids);
-% [SUPERIOR,INFERIOR] = MTvslength(idx_eco,C,img_size_eco,centroid_muscle_y,measure_x,measure_y,frame);
-% figure
-% plot(INFERIOR(:,1),(INFERIOR(:,2) - SUPERIOR(find(SUPERIOR(:,1) == INFERIOR(1)):INFERIOR(end,1),2)) .* param)
-% title('After')
-% grid minor
-% 
-% fprintf('%.4f %d \n',value_min, frame_min)
-% fprintf('%.4f %d \n',value_max, frame_max)
+%Se toma el frame más estático dentro de cada sección
+[value_b,before_f] = min(movimiento(1:locs(1),2));
+before_f = before_f + 10;
+[value_a,after_f] = min(movimiento((locs(1) + 1):(locs(2) - 5),2));
+after_f = after_f + 10 + locs(1);
+
+% Before Stimulation
+v.CurrentTime = memoria_distancia(before_f - 1);
+eco_b = readFrame(v);
+eco_b = rgb2gray(eco_b);
+eco_b = imcrop(eco_b,cut_area);
+eco_b = imadjust(eco_b);
+eco_b = double(eco_b);
+eco_b = eco_b / max(eco_b,[],'all'); % range(0-1)
+[x_InfApo_b,y_InfApo_b] = findInfAponeurosis(eco_b(muscle_y+1:end ,:),centroidsInfApo,ajuste);
+y_InfApo_b = y_InfApo_b + muscle_y; 
+[x_SupApo_b,y_SupApo_b] = findSupAponeurosis(eco_b(1:muscle_y,:),centroidsSupApo);
+%Cálculo de la distancia en [mm] 
+muscle_thickness_b = y_InfApo_b - y_SupApo_b;
+measure_y_inf_b = y_InfApo_b(x_InfApo_b == muscle_x);
+measure_y_sup_b = y_SupApo_b(x_SupApo_b == muscle_x);
+%Escalamineto de los límites de las fascias de pixeles a [mm]
+muscle_thickness_b = param * muscle_thickness_b;
+x_InfApo_b = param * x_InfApo_b;
+y_InfApo_b = param * y_InfApo_b;
+x_SupApo_b = param * x_SupApo_b;
+y_SupApo_b = param * y_SupApo_b;
+measure_y_inf_b = param * measure_y_inf_b;
+measure_y_sup_b = param * measure_y_sup_b;
+
+% After Stimulation
+v.CurrentTime = memoria_distancia(after_f - 1);
+eco_a = readFrame(v);
+eco_a = rgb2gray(eco_a);
+eco_a = imcrop(eco_a,cut_area);
+eco_a = imadjust(eco_a);
+eco_a = double(eco_a);
+eco_a = eco_a / max(eco_a,[],'all'); % range(0-1)
+[x_InfApo_a,y_InfApo_a] = findInfAponeurosis(eco_a(muscle_y+1:end ,:),centroidsInfApo,ajuste);
+y_InfApo_a = y_InfApo_a + muscle_y; 
+[x_SupApo_a,y_SupApo_a] = findSupAponeurosis(eco_a(1:muscle_y,:),centroidsSupApo);
+%Cálculo de la distancia en [mm] 
+muscle_thickness_a = y_InfApo_a - y_SupApo_a;
+measure_y_inf_a = y_InfApo_a(x_InfApo_a == muscle_x);
+measure_y_sup_a = y_SupApo_a(x_SupApo_a == muscle_x);
+%Escalamineto de los límites de las fascias de pixeles a [mm]
+muscle_thickness_a = param * muscle_thickness_a;
+x_InfApo_a = param * x_InfApo_a;
+y_InfApo_a = param * y_InfApo_a;
+x_SupApo_a = param * x_SupApo_a;
+y_SupApo_a = param * y_SupApo_a;
+measure_y_inf_a = param * measure_y_inf_a;
+measure_y_sup_a = param * measure_y_sup_a;
+
+%plot before and after stimulation
+figure
+subplot(1,2,1)
+    imshow(eco_b,imref2d(size(eco_b),param,param))
+    title(sprintf('Frame: %d ', frame))
+    hold on 
+    plot(x_InfApo_b,y_InfApo_b,'r--','LineWidth',3) 
+    plot(x_SupApo_b,y_SupApo_b,'r--','LineWidth',3) 
+    plot([muscle_x muscle_x] * param,[measure_y_inf_b measure_y_sup_b],'yo','LineWidth',3)
+    plot([muscle_x muscle_x] * param,[measure_y_inf_b measure_y_sup_b],'y-','LineWidth',3)
+    ylabel('[mm]')
+    yyaxis right
+    plot(x_InfApo,muscle_thickness_b,'LineWidth',3)
+    ylabel('Muscle Thickness [mm]')
+    xlabel('Longitudinal Axis [mm]')
+    hold off
+    title('Before Stimulation')
+subplot(1,2,2)
+    imshow(eco_a,imref2d(size(eco_a),param,param))
+    title(sprintf('Frame: %d ', frame))
+    hold on 
+    plot(x_InfApo_a,y_InfApo_a,'r--','LineWidth',3) 
+    plot(x_SupApo_a,y_SupApo_a,'r--','LineWidth',3) 
+    plot([muscle_x muscle_x] * param,[measure_y_inf_a measure_y_sup_a],'yo','LineWidth',3)
+    plot([muscle_x muscle_x] * param,[measure_y_inf_a measure_y_sup_a],'y-','LineWidth',3)
+    ylabel('[mm]')
+    yyaxis right
+    plot(x_InfApo,muscle_thickness_a,'LineWidth',3)
+    ylabel('Muscle Thickness [mm]')
+    xlabel('Longitudinal Axis [mm]')
+    hold off
+    title('After Stimulation')
+    
+    

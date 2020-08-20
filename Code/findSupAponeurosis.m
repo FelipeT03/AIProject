@@ -9,6 +9,7 @@ function [x_SupApo,y_SupApo] = findSupAponeurosis(eco, centroids)
     eco_C = C_K(idx_eco,:);%Imagen b/n
     %% Tratamiento de la imagen hasta conseguir una sola figura 
     eco_C = reshape(eco_C, img_size_eco(1), img_size_eco(2), 1);
+    eco_C(end,:) = 1;
     se90 = strel('line',5,90); 
     se0 = strel('line',5,0);
     eco_C = imdilate(eco_C,[se90 se0]);
