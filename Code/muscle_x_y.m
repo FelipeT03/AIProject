@@ -3,9 +3,12 @@ function [muscle_x, muscle_y, muscle_x_min, muscle_x_max] = muscle_x_y(eco)
     %% Parameters
     K = 2;
 
-    %% Training
+    %% Tratamiento de datos
     I = im2single(eco);
+    
+    %% Training
     L = imsegkmeans(I,K);
+    
     %% Results
     eco_C = L == K;
     eco_C = findLargestArea(eco_C);

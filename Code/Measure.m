@@ -8,12 +8,12 @@ clc
 close all
 
 %% Parameters 
-threshold = 1/100;%Porcentaje para treshold
 param = 0.121;%Factor de escalamiento
 [video_name,path_v] = uigetfile('*.*','Select Video File');
 cut_area = [30 25 595 487];%área de análisis
 v = VideoReader(strcat(path_v,video_name));
 memoria_distancia = zeros(round(v.FrameRate * v.Duration),1);% ->length of memoria_distancia
+movimiento = zeros(round(v.FrameRate * v.Duration),2);
 
 %% Training
 %Se entrena el modelo utilizando el primer frame del video, con esto
@@ -38,7 +38,20 @@ centroidsInfApo = findCentrInfApo(eco(muscle_y+1:end,:));
 
 % Centroides para Aponeurosis Superior
 centroidsSupApo = findCentrSupApo(eco(1:muscle_y,:));
-
+%% Detectar movimiento
+v.CurrentTime = 0;
+opticFlow = opticalFlowHS;
+frame  = 0;
+while hasFrame(v)
+    frame = frame + 1;
+    frameRGB = readFrame(v);
+    frameGray = rgb2gray(frameRGB);
+    flow = estimateFlow(opticFlow,frameGray);
+    movimiento(frame,1) = frame;
+    movimiento(frame,2) = sum([flow.Magnitude],'all');
+end
+movimiento(1:10,:) = [];
+[pks,locs] = findpeaks(movimiento(:,2),movimiento(:,1),'SortStr','descend');
 
 %% Results
 %Uso de los centroides del primer frame en todos los frames del video
@@ -89,6 +102,10 @@ while hasFrame(v)
     
     subplot(1, 2, 2)
     plot(memoria_distancia,'LineWidth',2)
+    hold on 
+    xline(locs(1),'--','LineWidth',2);
+    xline(locs(2),'--','LineWidth',2);
+    hold off
     title(strcat('Stimulation Video: ', video_name))
     xlabel('Frame')
     ylabel('[mm]')
@@ -106,7 +123,7 @@ end
 % grid minor 
 
 %% MT vs length
-% En esta versiï¿½n se debe corregir el momento de hacer el plot porque la
+% En esta versión se debe corregir el momento de hacer el plot porque la
 % fascia superior esta diseñada para estar en todo x pero al aumentar la
 % zona de corte esto ya no es posible. Se debe realizar el mismo
 % procedimiento que la fascia inferior que no estï¿½ en todo x. No se corrige
