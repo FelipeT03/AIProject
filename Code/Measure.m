@@ -11,7 +11,7 @@ close all
 %% Parameters 
 param = 0.121;%Factor de escalamiento
 [video_name,path_v] = uigetfile('*.*','Select Video File');
-cut_area = [30 25 595 400];%área de análisis [30 25 595 487]
+cut_area = [30 25 595 455];%área de análisis [30 25 595 487]
 v = VideoReader(strcat(path_v,video_name));
 memoria_distancia = zeros(round(v.FrameRate * v.Duration),2);% ->length of memoria_distancia
 movimiento = zeros(round(v.FrameRate * v.Duration),2);
@@ -32,10 +32,13 @@ eco = eco / max(eco,[],'all'); % range(0-1)
 [muscle_x, muscle_y, muscle_x_min, muscle_x_max] = muscle_x_y(eco);
 cut_area(1) = cut_area(1) + muscle_x_min - 1;
 cut_area(3) = muscle_x_max - muscle_x_min;
-imshow(eco)
-prompt = 'Punto más alto de fascia inferior ';
-x = input(prompt);
-ajuste = round((x- muscle_y) * 0.9);
+
+eco = readFrame(v);
+eco = rgb2gray(eco);
+eco = imcrop(eco,cut_area);
+eco = imadjust(eco);
+eco = double(eco);
+eco = eco / max(eco,[],'all'); % range(0-1)
 
 % Centroides para Aponeurosis Inferior
 centroidsInfApo = findCentrInfApo(eco(muscle_y+1:end,:));
@@ -76,8 +79,9 @@ while hasFrame(v)
     eco = imadjust(eco);
     eco = double(eco);
     eco = eco / max(eco,[],'all');
+    
     %Vector con los valores, en pixeles, de los límites a medir
-    [x_InfApo,y_InfApo] = findInfAponeurosis(eco(muscle_y+1:end ,:),centroidsInfApo,ajuste);
+    [x_InfApo,y_InfApo] = findInfAponeurosis(eco(muscle_y+1:end ,:),centroidsInfApo);
     y_InfApo = y_InfApo + muscle_y; 
     [x_SupApo,y_SupApo] = findSupAponeurosis(eco(1:muscle_y,:),centroidsSupApo);
     %Cálculo de la distancia en [mm] 
@@ -132,7 +136,7 @@ eco_b = imcrop(eco_b,cut_area);
 eco_b = imadjust(eco_b);
 eco_b = double(eco_b);
 eco_b = eco_b / max(eco_b,[],'all'); % range(0-1)
-[x_InfApo_b,y_InfApo_b] = findInfAponeurosis(eco_b(muscle_y+1:end ,:),centroidsInfApo,ajuste);
+[x_InfApo_b,y_InfApo_b] = findInfAponeurosis(eco_b(muscle_y+1:end ,:),centroidsInfApo);
 y_InfApo_b = y_InfApo_b + muscle_y; 
 [x_SupApo_b,y_SupApo_b] = findSupAponeurosis(eco_b(1:muscle_y,:),centroidsSupApo);
 %Cálculo de la distancia en [mm] 
@@ -156,7 +160,7 @@ eco_a = imcrop(eco_a,cut_area);
 eco_a = imadjust(eco_a);
 eco_a = double(eco_a);
 eco_a = eco_a / max(eco_a,[],'all'); % range(0-1)
-[x_InfApo_a,y_InfApo_a] = findInfAponeurosis(eco_a(muscle_y+1:end ,:),centroidsInfApo,ajuste);
+[x_InfApo_a,y_InfApo_a] = findInfAponeurosis(eco_a(muscle_y+1:end ,:),centroidsInfApo);
 y_InfApo_a = y_InfApo_a + muscle_y; 
 [x_SupApo_a,y_SupApo_a] = findSupAponeurosis(eco_a(1:muscle_y,:),centroidsSupApo);
 %Cálculo de la distancia en [mm] 
