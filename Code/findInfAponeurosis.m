@@ -39,7 +39,8 @@ function [x_InfApo,y_InfApo] = findInfAponeurosis(eco,centroids)
     img_size_eco_x = img_size_eco(2);
     img_size_eco_y = img_size_eco(1);
     [value, value_p] = max(eco_T_centroids(:,2) .* (eco_T_centroids(:,2) < round(img_size_eco_y * 0.5)));
-    ajuste = round(eco_T_extrema(value_p,2)) + 1;
+    %ajuste = round(eco_T_extrema(value_p,2)) + 1;
+    ajuste = round(eco_T_centroids(value_p,2) * 0.8);
     
     %Eliminar partes brillantes que no sean parte del músculo
     eco_T_centroids_delete = eco_T_centroids .* (eco_T_centroids(:,2) > round(img_size_eco_y * 0.6));
@@ -52,8 +53,8 @@ function [x_InfApo,y_InfApo] = findInfAponeurosis(eco,centroids)
         eco_C_delete = eco_C_delete + ismember(L, find(eco_T_area == eco_T_area(value_p(k)))); 
     end
     eco_C_delete = eco_C_delete > 0;
-    se90 = strel('line',10,90); 
-    se0 = strel('line',10,0);
+    se90 = strel('line',20,90); 
+    se0 = strel('line',20,0);
     eco_C_delete = imdilate(eco_C_delete,[se90 se0]);
     
     

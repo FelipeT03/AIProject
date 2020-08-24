@@ -1,4 +1,4 @@
-%% Pruebas con videos
+2%% Pruebas con videos
 %Lista de Toolbox:
 %- Computer Vision System Toolbox 
 %- Image Processing Toolbox 
@@ -18,7 +18,7 @@ movimiento = zeros(round(v.FrameRate * v.Duration),2);
 
 %% Training
 %Se entrena el modelo utilizando el primer frame del video, con esto
-%logramos obtener los centroides de luminancia vï¿½lidos para todo el video
+%logramos obtener los centroides de luminancia válidos para todo el video
 
 %Frame en escala de grises y con rango de 0 a 1
 eco = readFrame(v);
