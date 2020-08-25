@@ -44,7 +44,7 @@ function [x_InfApo,y_InfApo] = findInfAponeurosis(eco,centroids)
     
     %Eliminar partes brillantes que no sean parte del músculo
     eco_T_centroids_delete = eco_T_centroids .* (eco_T_centroids(:,2) > round(img_size_eco_y * 0.6));
-    eco_T_centroids_delete = eco_T_centroids_delete .* (eco_T_centroids(:,1) > round(img_size_eco_y * 0.5));
+    eco_T_centroids_delete = eco_T_centroids_delete .* (eco_T_centroids(:,1) > round(img_size_eco_x * 0.5));
     eco_C_delete = zeros(img_size_eco);
     value_p = find(eco_T_centroids_delete(:,1) > 0);
     CC = bwconncomp(BW2, 8);
