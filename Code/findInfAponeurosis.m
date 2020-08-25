@@ -13,7 +13,7 @@ function [x_InfApo,y_InfApo] = findInfAponeurosis(eco,centroids)
     
     
     % Crear la base donde se va a formar la fascia inferior
-    %Prueba
+    %Otra idea
     T = graythresh(eco);
     eco_T = imbinarize(eco,T);
     CC = bwconncomp(eco_T, 8);
