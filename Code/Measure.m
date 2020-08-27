@@ -13,7 +13,7 @@ param = 0.121;%[mm/pixels] - (eco)D5.91cm - Factor de escalamiento
 [video_name,path_v] = uigetfile('*.*','Select Video File');
 cut_area = [30 25 595 455];%área de análisis [30 25 595 487]
 v = VideoReader(strcat(path_v,video_name));
-memoria_distancia = zeros(round(v.FrameRate * v.Duration),2);% ->length of memoria_distancia
+memoria_distancia = zeros(round(v.FrameRate * v.Duration),2);
 movimiento = zeros(round(v.FrameRate * v.Duration),2);
 
 
@@ -29,7 +29,8 @@ while hasFrame(v)
     flow = estimateFlow(opticFlow,frameGray);
     movimiento(frame,1) = frame;
     movimiento(frame,2) = sum([flow.Magnitude],'all');
-    memoria_distancia(frame,1) = v.CurrentTime;
+    memoria_distancia(frame,1) = frame;
+    memoria_distancia(frame,2) = v.CurrentTime;
 end
 
 movimiento(1:10,:) = []; %Se genera un pico dentro del primer frame ya que se detecta un cambio.
@@ -68,7 +69,7 @@ cut_area(4) = muscle_y_max;
 
 
 %Before stimulation
-v.CurrentTime = memoria_distancia(before_f - 1);
+v.CurrentTime = memoria_distancia(before_f - 1,2);
 eco_b = readFrame(v);
 eco_b = rgb2gray(eco_b);
 eco_b = imcrop(eco_b,cut_area);
@@ -77,7 +78,7 @@ eco_b = double(eco_b);
 eco_b = eco_b / max(eco_b,[],'all'); % range(0-1)
 
 %After Stimulation
-v.CurrentTime = memoria_distancia(after_f - 1);
+v.CurrentTime = memoria_distancia(after_f - 1,2);
 eco_a = readFrame(v);
 eco_a = rgb2gray(eco_a);
 eco_a = imcrop(eco_a,cut_area);
@@ -130,7 +131,7 @@ while hasFrame(v)
     %Cálculo de la distancia en [mm] 
     measure_y_inf = y_InfApo(x_InfApo == muscle_x);
     measure_y_sup = y_SupApo(x_SupApo == muscle_x);
-    memoria_distancia(frame,2) = (measure_y_inf - measure_y_sup) * param;
+    memoria_distancia(frame,3) = (measure_y_inf - measure_y_sup) * param;
     %Escalamineto de los límites de las fascias de pixeles a [mm]
     x_InfApo = param * x_InfApo;
     y_InfApo = param * y_InfApo;
@@ -155,7 +156,7 @@ while hasFrame(v)
 %         ylabel('[mm]')
 %     
 %     subplot(1, 2, 2)
-%         plot(medfilt1(memoria_distancia(:,2),4),'LineWidth',2) %medfilt1 quitamos picos 
+%         plot(medfilt1(memoria_distancia(:,2),3),'LineWidth',2) %medfilt1 quitamos picos 
 %         hold on 
 %         xline(locs(1),'--','LineWidth',2);
 %         xline(locs(2),'--','LineWidth',2);
@@ -165,7 +166,7 @@ while hasFrame(v)
 %         ylabel('[mm]')
 %         grid minor    
 end
-memoria_distancia(:,2) = medfilt1(memoria_distancia(:,2),4);
+memoria_distancia(:,3) = medfilt1(memoria_distancia(:,3),3);
 
 
 %% MT vs length
@@ -237,7 +238,7 @@ subplot(1,2,2)
     hold off
     
 figure
-    plot(10:9 + length(memoria_distancia(10:end,2)),memoria_distancia(10:end,2),'LineWidth',2) %medfilt1 quitamos picos 
+    plot(10:9 + length(memoria_distancia(10:end,3)),memoria_distancia(10:end,3),'LineWidth',2) %medfilt1 quitamos picos 
     hold on 
     xline(locs(1),'--','LineWidth',2);
     xline(locs(2),'--','LineWidth',2);
@@ -246,11 +247,26 @@ figure
     xlabel('Frame')
     ylabel('[mm]')
     grid minor    
-    
-Results.title = video_name;
-Results.duration = v.Duration;
-Results.before_stimulation_mean = mean(memoria_distancia(10:locs(1),2));
-Results.before_stimulation_variance = std(memoria_distancia(10:locs(1),2)) ^ 2;
-Results.after_stimulation_mean = mean(memoria_distancia(locs(1):locs(2),2));
-Results.after_stimulation_variance = std(memoria_distancia(locs(1):locs(2),2)) ^ 2;
+%% Procesamiento de Resultados
+thickness = array2table(memoria_distancia,'VariableNames',{'Frame','Second','Millimeters'});
+
+Results.Name = video_name;
+Results.Duration = v.Duration;
+Results.Before_stimulacion_frame = before_f;
+Results.After_stimulation_frame = after_f;
+Results.Motion_frame_detection_1 = locs(1); 
+Results.Motion_frame_detection_2 = locs(2);
+Results.Before_stimulation_mean = mean(memoria_distancia(10:locs(1),3));
+Results.Before_stimulation_variance = std(memoria_distancia(10:locs(1),3)) ^ 2;
+Results.After_stimulation_mean = mean(memoria_distancia(locs(1):locs(2),3));
+Results.After_stimulation_variance = std(memoria_distancia(locs(1):locs(2),3)) ^ 2;    
+%% Mostrar y guardar los resultados    
+%Mostrando Resultados
 disp(Results)
+
+%Guardando Resultados
+
+% mkdir(strcat(video_name,'_results'))
+% writetable(thickness,strcat(video_name,'_results/','Thickness.csv'))
+% Results = struct2table(Results);
+% writetable(Results,strcat(video_name,'_results/','Summary.csv'))
