@@ -1,7 +1,7 @@
 function [x_SupApo,y_SupApo] = findSupAponeurosis(eco, centroids)
 %Encuentra el límite superior de la fascia superior y devuelve su posición
 %en un vector(x,y) utilizando los centroides de luminancia proporcionados
-    K = 2;
+    K = 3;
     C = eye(K);
     img_size_eco = size(eco);
     idx_eco = findClosestCentroids(eco(:), centroids);
@@ -9,9 +9,9 @@ function [x_SupApo,y_SupApo] = findSupAponeurosis(eco, centroids)
     eco_C = C_K(idx_eco,:);%Imagen b/n
     %% Tratamiento de la imagen hasta conseguir una sola figura 
     eco_C = reshape(eco_C, img_size_eco(1), img_size_eco(2), 1);
-    %eco_C(end,:) = 1;
+    eco_C = bwareaopen(eco_C,25);
     se90 = strel('line',5,90); 
-    se0 = strel('line',10,0);
+    se0 = strel('line',30,0);
     eco_C = imdilate(eco_C,[se90 se0]);
     eco_C = imfill(eco_C,'holes');%Imagen rellena espacios libres dentro de un elemento 
     %Eliminación de bordes irregulares de la figura
@@ -53,7 +53,8 @@ function [x_SupApo,y_SupApo] = findSupAponeurosis(eco, centroids)
         index = index + 1;
         vector(index,:) = [j find(eco_C(:,j),1,'first')];
     end
-    x_SupApo = vector(:,1);
-    y_SupApo = vector(:,2);
+    x_SupApo = 1:size(eco,2);
+    y_SupApo = zeros(size(eco,2),1) + mean(vector(:,2));
+    y_SupApo(vector(:,1)) = vector(:,2);
     y_SupApo = smooth(x_SupApo,y_SupApo,0.2,'rloess'); %Use a span of 10% of the total number of data points.
 end 

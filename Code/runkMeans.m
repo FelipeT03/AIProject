@@ -21,11 +21,11 @@ idx = zeros(m, 1);
         centroids = computeCentroids(X, idx, K);
 
         if sum(abs(centroids - previous_centroids),'all') < 0.0005
-            fprintf('K-Means iteration %d/%d...\n', i, max_iters);
+            %fprintf('K-Means iteration %d/%d...\n', i, max_iters);
             break
         end
         if sum(isnan(centroids),'all')
-            fprintf('length(Centroids) < K \n');
+            %fprintf('length(Centroids) < K \n');
             break
         end
         previous_centroids = centroids;

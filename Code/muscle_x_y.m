@@ -1,5 +1,4 @@
 function [muscle_x, muscle_y, muscle_x_min, muscle_x_max, muscle_y_max] = muscle_x_y(eco)
-%Encuentra en los centroides para el cálculo de la Apo inferior
     %% Parameters
     K = 2;
     %% Tratamiento de datos

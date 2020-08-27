@@ -9,15 +9,17 @@ clc
 close all
 
 %% Parameters 
-param = 0.121;%Factor de escalamiento
+param = 0.121;%[mm/pixels] - (eco)D5.91cm - Factor de escalamiento
 [video_name,path_v] = uigetfile('*.*','Select Video File');
 cut_area = [30 25 595 455];%área de análisis [30 25 595 487]
 v = VideoReader(strcat(path_v,video_name));
 memoria_distancia = zeros(round(v.FrameRate * v.Duration),2);% ->length of memoria_distancia
 movimiento = zeros(round(v.FrameRate * v.Duration),2);
 
+
 %% Detectar movimiento
-v.CurrentTime = 0;
+fprintf('Processing video... \nWait...\n');
+v.CurrentTime = 0;  
 opticFlow = opticalFlowHS;
 frame  = 0;
 while hasFrame(v)
@@ -29,9 +31,10 @@ while hasFrame(v)
     movimiento(frame,2) = sum([flow.Magnitude],'all');
     memoria_distancia(frame,1) = v.CurrentTime;
 end
-movimiento(1:10,:) = [];
+
+movimiento(1:10,:) = []; %Se genera un pico dentro del primer frame ya que se detecta un cambio.
 [pks,locs] = findpeaks(movimiento(:,2),movimiento(:,1),'SortStr','descend','MinPeakDistance',5);
-locs = sort(locs(1:2));
+locs = sort(locs(1:2));     
 
 
 %Se toma el frame más estático dentro de cada sección
@@ -41,7 +44,7 @@ before_f = before_f + 10;
 after_f = after_f + 10 + locs(1);
 
 %% Selección de los frames
-
+fprintf('Selecting the best frames... \n');
 v.CurrentTime = 0;
 %Frame en escala de grises y con rango de 0 a 1
 eco = readFrame(v);
@@ -102,13 +105,14 @@ centroidsSupApo_a = findCentrSupApo(eco_a(1:muscle_y,:));
 
 %% Results
 %Uso de los centroides del primer frame en todos los frames del video
-
+fprintf('Processing results frame by frame... \nWait... \n');
 v.CurrentTime = 0;%Rewind to the beginning
 
-figure
-set(gcf, 'Position', get(0, 'Screensize'));
+% figure
+% set(gcf, 'Position', get(0, 'Screensize'));
 frame = 0;
 
+memoria_fascia_sup_inf = zeros(round(v.FrameRate * v.Duration),size(eco_b,2),3);
 
 while hasFrame(v)
     pause(0.001)
@@ -134,32 +138,38 @@ while hasFrame(v)
     y_SupApo = param * y_SupApo;
     measure_y_inf = param * measure_y_inf;
     measure_y_sup = param * measure_y_sup;
-%%   ---- eco + plot ----
-    subplot(1, 2, 1)
-        imshow(eco,imref2d(size(eco),param,param))
-        title(sprintf('Frame: %d ', frame))
-        hold on 
-        plot(x_InfApo,y_InfApo,'r--','LineWidth',3) 
-        plot(x_SupApo,y_SupApo,'r--','LineWidth',3) 
-        plot([muscle_x muscle_x] * param,[measure_y_inf measure_y_sup],'yo','LineWidth',3)
-        plot([muscle_x muscle_x] * param,[measure_y_inf measure_y_sup],'y-','LineWidth',3)
-        hold off
-        xlabel('[mm]')
-        ylabel('[mm]')
     
-    subplot(1, 2, 2)
-        plot(medfilt1(memoria_distancia(:,2),3),'LineWidth',2) %medfilt1 quitamos picos 
-        hold on 
-        xline(locs(1),'--','LineWidth',2);
-        xline(locs(2),'--','LineWidth',2);
-        hold off
-        title(strcat('Stimulation Video: ', video_name))
-        xlabel('Frame')
-        ylabel('[mm]')
-        grid minor    
+    memoria_fascia_sup_inf(frame,:,1) = y_SupApo;
+    memoria_fascia_sup_inf(frame,:,2) = y_InfApo;
+%%   ---- eco + plot ----
+%     subplot(1, 2, 1)
+%         imshow(eco,imref2d(size(eco),param,param))
+%         title(sprintf('Frame: %d ', frame))
+%         hold on 
+%         plot(x_InfApo,y_InfApo,'r--','LineWidth',3) 
+%         plot(x_SupApo,y_SupApo,'r--','LineWidth',3) 
+%         plot([muscle_x muscle_x] * param,[measure_y_inf measure_y_sup],'yo','LineWidth',3)
+%         plot([muscle_x muscle_x] * param,[measure_y_inf measure_y_sup],'y-','LineWidth',3)
+%         hold off
+%         xlabel('[mm]')
+%         ylabel('[mm]')
+%     
+%     subplot(1, 2, 2)
+%         plot(medfilt1(memoria_distancia(:,2),4),'LineWidth',2) %medfilt1 quitamos picos 
+%         hold on 
+%         xline(locs(1),'--','LineWidth',2);
+%         xline(locs(2),'--','LineWidth',2);
+%         hold off
+%         title(strcat('Stimulation Video: ', video_name))
+%         xlabel('Frame')
+%         ylabel('[mm]')
+%         grid minor    
 end
+memoria_distancia(:,2) = medfilt1(memoria_distancia(:,2),4);
+
 
 %% MT vs length
+fprintf('Results for the best frames \n');
 % Before Stimulation
 [x_InfApo_b,y_InfApo_b] = findInfAponeurosis((eco_b(muscle_y+1:end ,:) .* area_delete_b),centroidsInfApo_b);
 y_InfApo_b = y_InfApo_b + muscle_y; 
@@ -193,12 +203,13 @@ x_SupApo_a = param * x_SupApo_a;
 y_SupApo_a = param * y_SupApo_a;
 measure_y_inf_a = param * measure_y_inf_a;
 measure_y_sup_a = param * measure_y_sup_a;
-
+%% Plot Results
 %plot before and after stimulation
+
 figure
 subplot(1,2,1)
     imshow(eco_b,imref2d(size(eco_b),param,param))
-    title(sprintf('Frame: %d ', frame))
+    title(sprintf('Before Stimulation - Frame: %d ', before_f))
     hold on 
     plot(x_InfApo_b,y_InfApo_b,'r--','LineWidth',3) 
     plot(x_SupApo_b,y_SupApo_b,'r--','LineWidth',3) 
@@ -210,10 +221,9 @@ subplot(1,2,1)
     ylabel('Muscle Thickness [mm]')
     xlabel('Longitudinal Axis [mm]')
     hold off
-    title('Before Stimulation')
 subplot(1,2,2)
     imshow(eco_a,imref2d(size(eco_a),param,param))
-    title(sprintf('Frame: %d ', frame))
+    title(sprintf('After Stimulation - Frame: %d ', after_f))
     hold on 
     plot(x_InfApo_a,y_InfApo_a,'r--','LineWidth',3) 
     plot(x_SupApo_a,y_SupApo_a,'r--','LineWidth',3) 
@@ -225,6 +235,22 @@ subplot(1,2,2)
     ylabel('Muscle Thickness [mm]')
     xlabel('Longitudinal Axis [mm]')
     hold off
-    title('After Stimulation')
     
+figure
+    plot(10:9 + length(memoria_distancia(10:end,2)),memoria_distancia(10:end,2),'LineWidth',2) %medfilt1 quitamos picos 
+    hold on 
+    xline(locs(1),'--','LineWidth',2);
+    xline(locs(2),'--','LineWidth',2);
+    hold off
+    title(strcat('Stimulation Video: ', video_name))
+    xlabel('Frame')
+    ylabel('[mm]')
+    grid minor    
     
+Results.title = video_name;
+Results.duration = v.Duration;
+Results.before_stimulation_mean = mean(memoria_distancia(10:locs(1),2));
+Results.before_stimulation_variance = std(memoria_distancia(10:locs(1),2)) ^ 2;
+Results.after_stimulation_mean = mean(memoria_distancia(locs(1):locs(2),2));
+Results.after_stimulation_variance = std(memoria_distancia(locs(1):locs(2),2)) ^ 2;
+disp(Results)

@@ -23,13 +23,34 @@ function [centroidsInfApo, area_delete] = findCentrInfApo(eco)
     D = bwdist(~bwconvhull(BW,'objects')); 
     D = D ./ max(D);
     D = D > 0.2;
-    se = strel('rectangle',[10 200]);
+    se = strel('rectangle',[10 150]);
     D(isnan(D)) = 0;
     D = imclose(D,se); 
     D = bwdist(D);
     DL = watershed(D);
     bgm = DL == 0;
     area = ~bgm;
-    area_delete = findLargestArea(area);
+    S = regionprops(area, 'Area', 'Centroid');
+    Areas = [S.Area];
+    if length([S.Area]) >= 2
+        area = bwareaopen(area,Areas(2));
+    else 
+        area = bwareaopen(area,Areas(length([S.Area])));
+    end
+    
+    CC = bwconncomp(area, 8);
+    S = regionprops(CC, 'Area', 'Centroid');
+    Areas = [S.Area];
+    numObj = numel(S);
+    Centroids = zeros(numObj,2);
+    for k = 1:numObj
+        Centroids(k,:) = [S(k).Centroid(1) S(k).Centroid(2)];
+    end
+    [value, value_p] = min(Centroids(:,2));
+    L = labelmatrix(CC);
+    area_delete = ismember(L, find([S.Area] == Areas(value_p))); 
+    
+    
+    %area_delete = findLargestArea(area);
 
 end 
