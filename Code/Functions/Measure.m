@@ -92,14 +92,14 @@ function Measure()
     %% Training
     %Entrenamiento para frames sin estimulación
     % Centroides para Aponeurosis Inferior
-    [centroidsInfApo_b, area_delete_b] = findCentrInfApo(eco_b(muscle_y+1:end,:));
+    [centroidsInfApo_b, area_delete_b] = findCentrInfApo(eco_b((muscle_y+1):end,:));
 
     % Centroides para Aponeurosis Superior
     centroidsSupApo_b = findCentrSupApo(eco_b(1:muscle_y,:));
 
     %Entrenamiento para frames con estimulación
     % Centroides para Aponeurosis Inferior
-    [centroidsInfApo_a, area_delete_a] = findCentrInfApo(eco_a(muscle_y+1:end,:));
+    [centroidsInfApo_a, area_delete_a] = findCentrInfApo(eco_a((muscle_y+1):end,:));
     area_delete_a = area_delete_a | area_delete_b; %el area despues de la estimulacion no puede ser mas pequeña por lo que se suman ambas para asegurar que mínimo se tiene el mismo tamaño de área
     % Centroides para Aponeurosis Superior
     centroidsSupApo_a = findCentrSupApo(eco_a(1:muscle_y,:));
@@ -110,15 +110,21 @@ function Measure()
     fprintf('Processing results frame by frame... \nWait... \n');
     v.CurrentTime = 0;%Rewind to the beginning
 
-    % figure
-    % set(gcf, 'Position', get(0, 'Screensize'));
+    figure
+    set(gcf, 'Position', get(0, 'Screensize'));
     frame = 0;
 
     memoria_fascia_sup_inf = zeros(round(v.FrameRate * v.Duration),size(eco_b,2),3);
-
+    area_delete = area_delete_b;
     while hasFrame(v)
         pause(0.001)
         frame = frame + 1;
+        if frame == locs(1)
+            area_delete = area_delete_a;
+        end
+        if frame == locs(2)
+            area_delete = area_delete_b;
+        end
         eco = readFrame(v);
         eco = imcrop(eco,cut_area);
         eco = rgb2gray(eco);
@@ -126,7 +132,7 @@ function Measure()
         eco = double(eco);
         eco = eco / max(eco,[],'all');
         %Vector con los valores, en pixeles, de los límites a medir
-        [x_InfApo,y_InfApo] = findInfAponeurosis((eco(muscle_y+1:end ,:) .* area_delete_b),centroidsInfApo_b);
+        [x_InfApo,y_InfApo] = findInfAponeurosis((eco(muscle_y+1:end ,:) .* area_delete),centroidsInfApo_b);
         y_InfApo = y_InfApo + muscle_y; 
         [x_SupApo,y_SupApo] = findSupAponeurosis(eco(1:muscle_y,:),centroidsSupApo_b);
         %Cálculo de la distancia en [mm] 
@@ -144,28 +150,28 @@ function Measure()
         memoria_fascia_sup_inf(frame,:,1) = y_SupApo;
         memoria_fascia_sup_inf(frame,:,2) = y_InfApo;
     %%   ---- eco + plot ----
-    %     subplot(1, 2, 1)
-    %         imshow(eco,imref2d(size(eco),param,param))
-    %         title(sprintf('Frame: %d ', frame))
-    %         hold on 
-    %         plot(x_InfApo,y_InfApo,'r--','LineWidth',3) 
-    %         plot(x_SupApo,y_SupApo,'r--','LineWidth',3) 
-    %         plot([muscle_x muscle_x] * param,[measure_y_inf measure_y_sup],'yo','LineWidth',3)
-    %         plot([muscle_x muscle_x] * param,[measure_y_inf measure_y_sup],'y-','LineWidth',3)
-    %         hold off
-    %         xlabel('[mm]')
-    %         ylabel('[mm]')
-    %     
-    %     subplot(1, 2, 2)
-    %         plot(medfilt1(memoria_distancia(:,2),3),'LineWidth',2) %medfilt1 quitamos picos 
-    %         hold on 
-    %         xline(locs(1),'--','LineWidth',2);
-    %         xline(locs(2),'--','LineWidth',2);
-    %         hold off
-    %         title(strcat('Stimulation Video: ', video_name))
-    %         xlabel('Frame')
-    %         ylabel('[mm]')
-    %         grid minor    
+        subplot(1, 2, 1)
+            imshow(eco,imref2d(size(eco),param,param))
+            title(sprintf('Frame: %d ', frame))
+            hold on 
+            plot(x_InfApo,y_InfApo,'r--','LineWidth',3) 
+            plot(x_SupApo,y_SupApo,'r--','LineWidth',3) 
+            plot([muscle_x muscle_x] * param,[measure_y_inf measure_y_sup],'yo','LineWidth',3)
+            plot([muscle_x muscle_x] * param,[measure_y_inf measure_y_sup],'y-','LineWidth',3)
+            hold off
+            xlabel('[mm]')
+            ylabel('[mm]')
+        
+        subplot(1, 2, 2)
+            plot(medfilt1(memoria_distancia(:,3),3),'LineWidth',2) %medfilt1 quitamos picos 
+            hold on 
+            xline(locs(1),'--','LineWidth',2);
+            xline(locs(2),'--','LineWidth',2);
+            hold off
+            title(strcat('Stimulation Video: ', video_name))
+            xlabel('Frame')
+            ylabel('[mm]')
+            grid minor    
     end
     memoria_distancia(:,3) = medfilt1(memoria_distancia(:,3),3);
 
