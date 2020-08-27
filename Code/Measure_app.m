@@ -1,2 +1,2 @@
-addpath('/Functions')
-Measure.m
+addpath(strcat(pwd,'\Functions'))
+Measure()
