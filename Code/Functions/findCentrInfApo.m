@@ -5,16 +5,6 @@ function [centroidsInfApo, area_delete] = findCentrInfApo(eco)
     threshold = 1/100;%Porcentaje para treshold
     max_iters = 100; 
     centroids = NaN;
-    %% Tratamiento de los datos
-    data_eco = eco(:);
-    data_eco(data_eco < threshold) = [];
-
-    %% Training
-    while sum(isnan(centroids),'all')
-    initial_centroids = kMeansInitCentroids(data_eco, K);
-    [centroids, idx] = runkMeans(data_eco, initial_centroids, max_iters);
-    end
-    centroidsInfApo  = sort(centroids,1);
     
     %% area_delete
     T = graythresh(eco) + 0.05;
@@ -31,8 +21,18 @@ function [centroidsInfApo, area_delete] = findCentrInfApo(eco)
     bgm = DL == 0;
     area = ~bgm;
     
-    v_1 = round([(size(eco,1) * 0.75) 1]);
+    v_1 = round([(size(eco,1) * 0.75) 1]);  %row col
     v_2 = round([1 size(eco,2) * 0.3]);
+    x = [v_1(2) v_2(2)];                   % x coordinates
+    y = [v_1(1) v_2(1)];                   % y coordinates
+    nPoints = max(abs(diff(x)), abs(diff(y)))+1;    % Number of points in line
+    rIndex = round(linspace(y(1), y(2), nPoints));  % Row indices
+    cIndex = round(linspace(x(1), x(2), nPoints));  % Column indices
+    index = sub2ind(size(area), rIndex, cIndex);     % Linear indices
+    area(index) = 1;  % Set the line points to white
+    
+    v_1 = round([(size(eco,1) * 0.25) size(eco,2)]); %row col
+    v_2 = round([1 size(eco,2) * 0.75]);
     x = [v_1(2) v_2(2)];                   % x coordinates
     y = [v_1(1) v_2(1)];                   % y coordinates
     nPoints = max(abs(diff(x)), abs(diff(y)))+1;    % Number of points in line
@@ -95,6 +95,9 @@ function [centroidsInfApo, area_delete] = findCentrInfApo(eco)
 %         area_delete_r_centroid(1) = area_delete_r_centroid(1) + round(size(eco,2));
     
     area_delete = [area_delete_l,area_delete_r];
+    se90 = strel('line',5,90); 
+    se0 = strel('line',5,0);
+    area_delete = imdilate(area_delete,[se90 se0]);
 % D = bwdist(bwconvhull(BW,'objects'));
 % DL = watershed(D);
 % bgm = DL == 0;
@@ -117,5 +120,17 @@ function [centroidsInfApo, area_delete] = findCentrInfApo(eco)
 % index = sub2ind(size(bgm), rIndex, cIndex);     % Linear indices
 % bgm(index) = 1;  % Set the line points to white
 % imshow(bgm); 
+    %% Tratamiento de los datos
+    data_eco = eco .* area_delete;
+    data_eco = data_eco(:);
+    data_eco(data_eco < threshold) = [];
+
+    %% Training
+    while sum(isnan(centroids),'all')
+    initial_centroids = kMeansInitCentroids(data_eco, K);
+    [centroids, idx] = runkMeans(data_eco, initial_centroids, max_iters);
+    end
+    centroidsInfApo  = sort(centroids,1);
+    
 
 end 
