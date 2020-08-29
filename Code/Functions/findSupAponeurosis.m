@@ -38,10 +38,7 @@ function [x_SupApo,y_SupApo] = findSupAponeurosis(eco, centroids)
     Areas = [S.Area];
     L = labelmatrix(CC);
     eco_C = ismember(L, find([S.Area] == Areas(nArea))); 
-    
-%     eco_C_outline = bwperim(eco_C); 
-%     Segout_eco = eco;  
-%     Segout_eco(eco_C_outline) = 1;  
+
     %% Encontrar los puntos que delimitan la figura
     [row,col] = find(eco_C);
     col_start = col(1);

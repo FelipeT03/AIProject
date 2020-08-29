@@ -13,7 +13,6 @@ function [x_InfApo,y_InfApo] = findInfAponeurosis(eco,centroids)
     
     
     % Crear la base donde se va a formar la fascia inferior
-    %Otra idea
     T = graythresh(eco);
     eco_T_r = imbinarize(eco,T);
     eco_T_r = bwareaopen(eco_T_r,50);
@@ -34,9 +33,7 @@ function [x_InfApo,y_InfApo] = findInfAponeurosis(eco,centroids)
     end
     img_size_eco_x = img_size_eco(2);
     img_size_eco_y = img_size_eco(1);
-    [value, value_p] = max(eco_T_centroids(:,2) .* (eco_T_centroids(:,2) < round(img_size_eco_y * 0.5)));
-    %ajuste = round(eco_T_extrema(value_p,2)) + 1;
-    %ajuste = round(eco_T_centroids(value_p,2) * 0.6);
+
     
     %Eliminar partes brillantes que no sean parte del músculo
     eco_T_centroids_delete = eco_T_centroids .* (eco_T_centroids(:,2) > round(img_size_eco_y * 0.8));
@@ -55,7 +52,6 @@ function [x_InfApo,y_InfApo] = findInfAponeurosis(eco,centroids)
     
     
     eco_C = eco_C .* (eco_C_delete < 1);
-    %eco_C(1:ajuste,:) = 1;
     CC = bwconncomp(eco_C, 8);
     S = regionprops(CC, 'Area');
     Areas = sort([S.Area],'descend');
@@ -70,28 +66,9 @@ function [x_InfApo,y_InfApo] = findInfAponeurosis(eco,centroids)
     seD = strel('rectangle',[3 3]); 
     eco_C = imerode(eco_C,seD); 
     eco_C = imerode(eco_C,seD);
-
-    
-%     eco_C(1:ajuste,:) = 1;
-    
-%     S = regionprops(eco_C,'Extrema','Centroid');
-%     numObj = numel(S); 
-%     eco_T_centroids = zeros(numObj,2);
-%     eco_T_extrema = zeros(numObj,2);
-%     for k = 1 : numObj
-%         eco_T_centroids(k,:) = [S(k).Centroid(1), S(k).Centroid(2)]; 
-%         eco_T_extrema(k,:) = [S(k).Extrema(2,1), S(k).Extrema(2,2)]; 
-%     end
-%     vectordeprueba = round(eco_T_extrema .* (eco_T_centroids(:,2)< round(img_size_eco_y * 0.8)));
-%     for k = 1 : numObj
-%         if vectordeprueba(k,2) > 0
-%             eco_C(1:vectordeprueba(k,2),vectordeprueba(k,1)) = 1;%vectordeprueba ayuda a unir partes pequeñas (cambiar de nombre)
-%         end
-%     end
         
     eco_C = eco_C(1:img_size_eco(1),1:img_size_eco(2));
     
-    %eco_C = findLargestArea(eco_C);
 
     %% Encontrar los puntos que delimitan la figura
     [row,col] = find(eco_C);
@@ -109,8 +86,6 @@ function [x_InfApo,y_InfApo] = findInfAponeurosis(eco,centroids)
     y_InfApo = zeros(size(eco,2),1) + ajuste;
     y_InfApo(vector(:,2) > (0.8*ajuste)) = vector(vector(:,2) > (0.8*ajuste),2);
     y_InfApo = medfilt1(y_InfApo,3);
-    %y_InfApo = envelope(y_InfApo);
-    %y_InfApo = smooth(x_InfApo,y_InfApo,0.1,'rloess'); %Use a span of 10% of the total number of data points.
 end
 
 

@@ -65,7 +65,7 @@ function [frame_time,eco_memory,memoria_fascia_sup_inf,Results] = Measure()
 
     %Se realizan dos entrenamientos en dos frames diferentes, se toma el frame
     %más estático dentro de la zona sin estimulación y de la zona con
-    %estimulación.Con esto logramos obtener los centroides de luminancia
+    %estimulación. Con esto logramos obtener los centroides de luminancia
     %válidos para cada sección
 
 
@@ -110,8 +110,6 @@ function [frame_time,eco_memory,memoria_fascia_sup_inf,Results] = Measure()
     fprintf('Processing results frame by frame... \nWait... \n');
     v.CurrentTime = 0;%Rewind to the beginning
 
-%     figure
-%     set(gcf, 'Position', get(0, 'Screensize'));
     frame = 0;
 
     memoria_fascia_sup_inf = zeros(round(v.FrameRate * v.Duration),size(eco_b,2),2);
@@ -138,62 +136,32 @@ function [frame_time,eco_memory,memoria_fascia_sup_inf,Results] = Measure()
         y_InfApo = y_InfApo + muscle_y; 
         [x_SupApo,y_SupApo] = findSupAponeurosis(eco(1:muscle_y,:),centroidsSupApo_b);
         %Cálculo de la distancia en [mm] 
-        measure_y_inf = y_InfApo(x_InfApo == muscle_x);
-        measure_y_sup = y_SupApo(x_SupApo == muscle_x);
-        %memoria_distancia(frame,3) = (measure_y_inf - measure_y_sup) * param;
-        %Escalamineto de los límites de las fascias de pixeles a [mm]
         x_InfApo = param * x_InfApo;
         y_InfApo = param * y_InfApo;
-        %x_SupApo = param * x_SupApo;
         y_SupApo = param * y_SupApo;
-        measure_y_inf = param * measure_y_inf;
-        measure_y_sup = param * measure_y_sup;
 
         memoria_fascia_sup_inf(frame,:,1) = y_SupApo;
         memoria_fascia_sup_inf(frame,:,2) = y_InfApo;
-    %%   ---- eco + plot ----
-%         subplot(1, 2, 1)
-%             imshow(eco,imref2d(size(eco),param,param))
-%             title(sprintf('Frame: %d ', frame))
-%             hold on 
-%             plot(x_InfApo,y_InfApo,'r--','LineWidth',3) 
-%             plot(x_SupApo,y_SupApo,'r--','LineWidth',3) 
-%             plot([muscle_x muscle_x] * param,[measure_y_inf measure_y_sup],'yo','LineWidth',3)
-%             plot([muscle_x muscle_x] * param,[measure_y_inf measure_y_sup],'y-','LineWidth',3)
-%             hold off
-%             xlabel('[mm]')
-%             ylabel('[mm]')
-%         
-%         subplot(1, 2, 2)
-%             plot(medfilt1(memoria_distancia(:,3),3),'LineWidth',2) %medfilt1 quitamos picos 
-%             hold on 
-%             xline(locs(1),'--','LineWidth',2);
-%             xline(locs(2),'--','LineWidth',2);
-%             hold off
-%             title(strcat('Stimulation Video: ', video_name))
-%             xlabel('Frame')
-%             ylabel('[mm]')
-%             grid minor    
     end
     
     
  %% Optimizing results   
     fprintf('Optimizing results... \nIt may take a few seconds... \n');
-    for k = 1:size(memoria_fascia_sup_inf,2)
-        if k < 63
-            memoria_fascia_sup_inf(1:62,k,1) = smooth(memoria_fascia_sup_inf(1:62,k,1),0.1,'rloess');
-            memoria_fascia_sup_inf(1:62,k,2) = smooth(memoria_fascia_sup_inf(1:62,k,2),0.3,'rloess');
-        elseif k < 118
-            memoria_fascia_sup_inf(63:117,k,1) = smooth(memoria_fascia_sup_inf(63:117,k,1),0.1,'rloess');
-            memoria_fascia_sup_inf(63:117,k,2) = smooth(memoria_fascia_sup_inf(63:117,k,2),0.3,'rloess');
-        elseif k >= 118
-            memoria_fascia_sup_inf(118:end,k,1) = smooth(memoria_fascia_sup_inf(118:end,k,1),0.1,'rloess');
-            memoria_fascia_sup_inf(118:end,k,2) = smooth(memoria_fascia_sup_inf(118:end,k,2),0.3,'rloess');
+    for frame = 1:size(memoria_fascia_sup_inf,2)
+        if frame < locs(1) 
+            memoria_fascia_sup_inf(1:locs(1) - 1,frame,1) = smooth(memoria_fascia_sup_inf(1:locs(1) - 1,frame,1),0.1,'rloess');
+            memoria_fascia_sup_inf(1:locs(1) - 1,frame,2) = smooth(memoria_fascia_sup_inf(1:locs(1) - 1,frame,2),0.3,'rloess');
+        elseif frame < locs(2)
+            memoria_fascia_sup_inf(locs(1):locs(2) - 1,frame,1) = smooth(memoria_fascia_sup_inf(locs(1):locs(2) - 1,frame,1),0.1,'rloess');
+            memoria_fascia_sup_inf(locs(1):locs(2) - 1,frame,2) = smooth(memoria_fascia_sup_inf(locs(1):locs(2) - 1,frame,2),0.3,'rloess');
+        elseif frame >= locs(2)
+            memoria_fascia_sup_inf(locs(2):end,frame,1) = smooth(memoria_fascia_sup_inf(locs(2):end,frame,1),0.1,'rloess');
+            memoria_fascia_sup_inf(locs(2):end,frame,2) = smooth(memoria_fascia_sup_inf(locs(2):end,frame,2),0.3,'rloess');
         end
     end
-    for k = 1:size(memoria_fascia_sup_inf,1)
-        memoria_fascia_sup_inf(k,:,1) = smooth(memoria_fascia_sup_inf(k,:,1),0.1,'rloess');
-        memoria_fascia_sup_inf(k,:,2) = smooth(memoria_fascia_sup_inf(k,:,2),0.1,'rloess');
+    for frame = 1:size(memoria_fascia_sup_inf,1)
+        memoria_fascia_sup_inf(frame,:,1) = smooth(memoria_fascia_sup_inf(frame,:,1),0.1,'rloess');
+        memoria_fascia_sup_inf(frame,:,2) = smooth(memoria_fascia_sup_inf(frame,:,2),0.1,'rloess');
     end
     
     
@@ -203,53 +171,48 @@ function [frame_time,eco_memory,memoria_fascia_sup_inf,Results] = Measure()
     frame_time = memoria_distancia(:,2);
 
     %% MT vs length
-%     % Before Stimulation
-%     [x_InfApo_b,y_InfApo_b] = findInfAponeurosis((eco_b(muscle_y+1:end ,:) .* area_delete_b),centroidsInfApo_b);
-%     y_InfApo_b = y_InfApo_b + muscle_y; 
-%     [x_SupApo_b,y_SupApo_b] = findSupAponeurosis(eco_b(1:muscle_y,:),centroidsSupApo_b);
-%     %Cálculo de la distancia en [mm] 
-%     muscle_thickness_b = y_InfApo_b - y_SupApo_b;
-%     measure_y_inf_b = y_InfApo_b(x_InfApo_b == muscle_x);
-%     measure_y_sup_b = y_SupApo_b(x_SupApo_b == muscle_x);
-%     %Escalamineto de los límites de las fascias de pixeles a [mm]
-%     muscle_thickness_b = param * muscle_thickness_b;
-%     x_InfApo_b = param * x_InfApo_b;
-%     y_InfApo_b = param * y_InfApo_b;
-%     x_SupApo_b = param * x_SupApo_b;
-%     y_SupApo_b = param * y_SupApo_b;
-%     measure_y_inf_b = param * measure_y_inf_b;
-%     measure_y_sup_b = param * measure_y_sup_b;
-% 
-%     % After Stimulation
-%     [x_InfApo_a,y_InfApo_a] = findInfAponeurosis((eco_a(muscle_y+1:end ,:) .* area_delete_a),centroidsInfApo_a);
-%     y_InfApo_a = y_InfApo_a + muscle_y; 
-%     [x_SupApo_a,y_SupApo_a] = findSupAponeurosis(eco_a(1:muscle_y,:),centroidsSupApo_a);
-%     %Cálculo de la distancia en [mm] 
-%     muscle_thickness_a = y_InfApo_a - y_SupApo_a;
-%     measure_y_inf_a = y_InfApo_a(x_InfApo_a == muscle_x);
-%     measure_y_sup_a = y_SupApo_a(x_SupApo_a == muscle_x);
-%     %Escalamineto de los límites de las fascias de pixeles a [mm]
-%     muscle_thickness_a = param * muscle_thickness_a;
-%     x_InfApo_a = param * x_InfApo_a;
-%     y_InfApo_a = param * y_InfApo_a;
-%     x_SupApo_a = param * x_SupApo_a;
-%     y_SupApo_a = param * y_SupApo_a;
-%     measure_y_inf_a = param * measure_y_inf_a;
-%     measure_y_sup_a = param * measure_y_sup_a;
-
-%Cálculo de los valores para los mejores frames
+    %Cálculo de los valores para los mejores frames
     y_SupApo_b = memoria_fascia_sup_inf(before_f,:,1);
     y_InfApo_b  = memoria_fascia_sup_inf(before_f,:,2);
-    measure_y_sup_b = memoria_fascia_sup_inf(before_f,muscle_x,1);
-    measure_y_inf_b = memoria_fascia_sup_inf(before_f,muscle_x,2);
     muscle_thickness_b = y_InfApo_b - y_SupApo_b;
     
     y_SupApo_a = memoria_fascia_sup_inf(after_f,:,1);
     y_InfApo_a  = memoria_fascia_sup_inf(after_f,:,2);
-    measure_y_sup_a = memoria_fascia_sup_inf(after_f,muscle_x,1);
-    measure_y_inf_a = memoria_fascia_sup_inf(after_f,muscle_x,2);
     muscle_thickness_a = y_InfApo_a - y_SupApo_a;
     %% Plot Results
+    figure
+    Pause_t = 1/v.FrameRate;
+    set(gcf, 'Position', get(0, 'Screensize'));
+    
+        for frame = 1:size(memoria_fascia_sup_inf,1)
+            subplot(1, 2, 1)
+                imshow(eco_memory(:,:,frame),imref2d(size(eco_memory(:,:,1)),param,param))
+                title(sprintf('Frame: %d ', frame))
+                hold on
+                plot([muscle_x muscle_x] * param,[memoria_fascia_sup_inf(frame,muscle_x,2) memoria_fascia_sup_inf(frame,muscle_x,1)],'yo','LineWidth',3)
+                plot([muscle_x muscle_x] * param,[memoria_fascia_sup_inf(frame,muscle_x,2) memoria_fascia_sup_inf(frame,muscle_x,1)],'y-','LineWidth',3)
+                plot((1:size(eco_memory(:,:,1),2)) .* param, memoria_fascia_sup_inf(frame,:,1),'r--','LineWidth',3)
+                plot((1:size(eco_memory(:,:,1),2)) .* param, memoria_fascia_sup_inf(frame,:,2),'r--','LineWidth',3)
+                hold off
+                xlabel('[mm]')
+                ylabel('[mm]')
+            
+            subplot(1, 2, 2)
+                plot(memoria_distancia(1:frame,1),memoria_distancia(1:frame,3),'LineWidth',2) %medfilt1 quitamos picos 
+                hold on 
+                xline(locs(1),'--','LineWidth',2);
+                xline(locs(2),'--','LineWidth',2);
+                hold off
+                title(strcat('Stimulation Video: ', video_name))
+                xlabel('Frame')
+                ylabel(sprintf('Muscle Thickness [mm] (Longitudinal Axis = %.2f [mm])', muscle_x * param))
+                grid minor 
+
+           
+            pause(Pause_t)
+        end
+
+    
     %plot before and after stimulation
     fprintf('Results for the best frames \n');
     figure
@@ -259,8 +222,6 @@ function [frame_time,eco_memory,memoria_fascia_sup_inf,Results] = Measure()
         hold on 
         plot(x_InfApo,y_InfApo_b,'r--','LineWidth',3) 
         plot(x_InfApo,y_SupApo_b,'r--','LineWidth',3) 
-        plot([muscle_x muscle_x] * param,[measure_y_inf_b measure_y_sup_b],'yo','LineWidth',3)
-        plot([muscle_x muscle_x] * param,[measure_y_inf_b measure_y_sup_b],'y-','LineWidth',3)
         ylabel('[mm]')
         yyaxis right
         plot(x_InfApo,muscle_thickness_b,'LineWidth',3)
@@ -273,8 +234,6 @@ function [frame_time,eco_memory,memoria_fascia_sup_inf,Results] = Measure()
         hold on 
         plot(x_InfApo,y_InfApo_a,'r--','LineWidth',3) 
         plot(x_InfApo,y_SupApo_a,'r--','LineWidth',3) 
-        plot([muscle_x muscle_x] * param,[measure_y_inf_a measure_y_sup_a],'yo','LineWidth',3)
-        plot([muscle_x muscle_x] * param,[measure_y_inf_a measure_y_sup_a],'y-','LineWidth',3)
         ylabel('[mm]')
         yyaxis right
         plot(x_InfApo,muscle_thickness_a,'LineWidth',3)
@@ -282,20 +241,10 @@ function [frame_time,eco_memory,memoria_fascia_sup_inf,Results] = Measure()
         xlabel('Longitudinal Axis [mm]')
         hold off
 
-    figure
-        plot(10:9 + length(memoria_distancia(10:end,3)),memoria_distancia(10:end,3),'LineWidth',2) %medfilt1 quitamos picos 
-        hold on 
-        xline(locs(1),'--','LineWidth',2);
-        xline(locs(2),'--','LineWidth',2);
-        hold off
-        title(strcat('Stimulation Video: ', video_name))
-        xlabel('Frame')
-        ylabel('[mm]')
-        grid minor    
+   
     %% Procesamiento de Resultados
     fprintf('Saving results \n');
     thickness = array2table(memoria_distancia,'VariableNames',{'Frame','Second','Millimeters'});
-    %frame_time = array2table(frame_time,'VaribalesNames',{'Frame','Second'});
 
     Results.Name = video_name;
     Results.Duration = v.Duration;
@@ -303,7 +252,7 @@ function [frame_time,eco_memory,memoria_fascia_sup_inf,Results] = Measure()
     Results.Scale_factor = param;
     Results.Muscle_x_pixel = muscle_x;
     Results.Before_stimulacion_frame = before_f;
-    Results.After_stimulation_frame = after_f;
+    Results.After_stimulation_frame = after_f; %añadir unidades 
     Results.Motion_frame_detection_1 = locs(1); 
     Results.Motion_frame_detection_2 = locs(2);
     Results.Before_stimulation_mean = mean(memoria_distancia(10:locs(1),3));
@@ -315,12 +264,11 @@ function [frame_time,eco_memory,memoria_fascia_sup_inf,Results] = Measure()
     disp(Results)
 
     %Guardando Resultados
-
-%     mkdir(strcat(video_name,'_results'))
-%     save('memoria_fascia_sup_inf.mat','memoria_fascia_sup_inf')
-%     save('frame_time.mat','frame_time')
-%     save('eco_memory.mat','eco_memory')
-%     writetable(thickness,strcat(video_name,'_results/','Thickness.csv'))
-%     Results_table = struct2table(Results);
-%     writetable(Results_table,strcat(video_name,'_results/','Summary.csv'))
+    mkdir(strcat(video_name,'_results'))
+    save(strcat(video_name,'_results/','memoria_fascia_sup_inf.mat'),'memoria_fascia_sup_inf')
+    save(strcat(video_name,'_results/','frame_time.mat'),'frame_time')
+    save(strcat(video_name,'_results/','eco_memory.mat'),'eco_memory')
+    writetable(thickness,strcat(video_name,'_results/','Thickness.csv'))
+    Results_table = struct2table(Results);
+    writetable(Results_table,strcat(video_name,'_results/','Summary.csv'))
 end 

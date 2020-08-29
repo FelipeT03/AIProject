@@ -63,8 +63,6 @@ function [centroidsInfApo, area_delete] = findCentrInfApo(eco)
         [value, value_p] = min(Centroids(:,2));
         L = labelmatrix(CC);
         area_delete_l = ismember(L, find([S.Area] == Areas(value_p)));
-%         S = regionprops(area_delete_l,'Centroid');
-%         area_delete_l_centroid = round([S.Centroid]);
         
     
         
@@ -90,36 +88,12 @@ function [centroidsInfApo, area_delete] = findCentrInfApo(eco)
         [value, value_p] = min(Centroids(:,2));
         L = labelmatrix(CC);
         area_delete_r = ismember(L, find([S.Area] == Areas(value_p))); 
-%         S = regionprops(area_delete_r,'Centroid');
-%         area_delete_r_centroid = round([S.Centroid]);
-%         area_delete_r_centroid(1) = area_delete_r_centroid(1) + round(size(eco,2));
     
     area_delete = [area_delete_l,area_delete_r];
     se90 = strel('line',5,90); 
     se0 = strel('line',5,0);
     area_delete = imdilate(area_delete,[se90 se0]);
-% D = bwdist(bwconvhull(BW,'objects'));
-% DL = watershed(D);
-% bgm = DL == 0;
-% imshow(bgm)
-% v_1 = round([(size(eco,1) * 0.75) 1]);
-% v_2 = round([1 size(eco,2) * 0.3]);
-% v_3 = round([(size(eco,1) * 0.5) size(eco,2)]);
-% hold on
-% plot(v_1(2),v_1(1),'r*')
-% plot(v_2(2),v_2(1),'r*')
-% plot(v_3(2),v_3(1),'r*')
-% 
-% 
-% 
-%  x = [v_1(2) v_2(2)];                   % x coordinates
-% y = [v_1(1) v_2(1)];                   % y coordinates
-% nPoints = max(abs(diff(x)), abs(diff(y)))+1;    % Number of points in line
-% rIndex = round(linspace(y(1), y(2), nPoints));  % Row indices
-% cIndex = round(linspace(x(1), x(2), nPoints));  % Column indices
-% index = sub2ind(size(bgm), rIndex, cIndex);     % Linear indices
-% bgm(index) = 1;  % Set the line points to white
-% imshow(bgm); 
+
     %% Tratamiento de los datos
     data_eco = eco .* area_delete;
     data_eco = data_eco(:);
