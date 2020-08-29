@@ -1,6 +1,6 @@
 addpath(strcat(pwd,'\Functions'))
 [frame_time,eco_memory,memoria_fascia_sup_inf,Results] = Measure();
-
+pause()
 Scale_factor = Results.Scale_factor;
 Pause_t = 1/Results.Frame_rate;
 figure

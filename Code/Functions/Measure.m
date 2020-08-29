@@ -203,50 +203,62 @@ function [frame_time,eco_memory,memoria_fascia_sup_inf,Results] = Measure()
     frame_time = memoria_distancia(:,2);
 
     %% MT vs length
-    fprintf('Results for the best frames \n');
-    % Before Stimulation
-    [x_InfApo_b,y_InfApo_b] = findInfAponeurosis((eco_b(muscle_y+1:end ,:) .* area_delete_b),centroidsInfApo_b);
-    y_InfApo_b = y_InfApo_b + muscle_y; 
-    [x_SupApo_b,y_SupApo_b] = findSupAponeurosis(eco_b(1:muscle_y,:),centroidsSupApo_b);
-    %Cálculo de la distancia en [mm] 
-    muscle_thickness_b = y_InfApo_b - y_SupApo_b;
-    measure_y_inf_b = y_InfApo_b(x_InfApo_b == muscle_x);
-    measure_y_sup_b = y_SupApo_b(x_SupApo_b == muscle_x);
-    %Escalamineto de los límites de las fascias de pixeles a [mm]
-    muscle_thickness_b = param * muscle_thickness_b;
-    x_InfApo_b = param * x_InfApo_b;
-    y_InfApo_b = param * y_InfApo_b;
-    x_SupApo_b = param * x_SupApo_b;
-    y_SupApo_b = param * y_SupApo_b;
-    measure_y_inf_b = param * measure_y_inf_b;
-    measure_y_sup_b = param * measure_y_sup_b;
+%     % Before Stimulation
+%     [x_InfApo_b,y_InfApo_b] = findInfAponeurosis((eco_b(muscle_y+1:end ,:) .* area_delete_b),centroidsInfApo_b);
+%     y_InfApo_b = y_InfApo_b + muscle_y; 
+%     [x_SupApo_b,y_SupApo_b] = findSupAponeurosis(eco_b(1:muscle_y,:),centroidsSupApo_b);
+%     %Cálculo de la distancia en [mm] 
+%     muscle_thickness_b = y_InfApo_b - y_SupApo_b;
+%     measure_y_inf_b = y_InfApo_b(x_InfApo_b == muscle_x);
+%     measure_y_sup_b = y_SupApo_b(x_SupApo_b == muscle_x);
+%     %Escalamineto de los límites de las fascias de pixeles a [mm]
+%     muscle_thickness_b = param * muscle_thickness_b;
+%     x_InfApo_b = param * x_InfApo_b;
+%     y_InfApo_b = param * y_InfApo_b;
+%     x_SupApo_b = param * x_SupApo_b;
+%     y_SupApo_b = param * y_SupApo_b;
+%     measure_y_inf_b = param * measure_y_inf_b;
+%     measure_y_sup_b = param * measure_y_sup_b;
+% 
+%     % After Stimulation
+%     [x_InfApo_a,y_InfApo_a] = findInfAponeurosis((eco_a(muscle_y+1:end ,:) .* area_delete_a),centroidsInfApo_a);
+%     y_InfApo_a = y_InfApo_a + muscle_y; 
+%     [x_SupApo_a,y_SupApo_a] = findSupAponeurosis(eco_a(1:muscle_y,:),centroidsSupApo_a);
+%     %Cálculo de la distancia en [mm] 
+%     muscle_thickness_a = y_InfApo_a - y_SupApo_a;
+%     measure_y_inf_a = y_InfApo_a(x_InfApo_a == muscle_x);
+%     measure_y_sup_a = y_SupApo_a(x_SupApo_a == muscle_x);
+%     %Escalamineto de los límites de las fascias de pixeles a [mm]
+%     muscle_thickness_a = param * muscle_thickness_a;
+%     x_InfApo_a = param * x_InfApo_a;
+%     y_InfApo_a = param * y_InfApo_a;
+%     x_SupApo_a = param * x_SupApo_a;
+%     y_SupApo_a = param * y_SupApo_a;
+%     measure_y_inf_a = param * measure_y_inf_a;
+%     measure_y_sup_a = param * measure_y_sup_a;
 
-    % After Stimulation
-    [x_InfApo_a,y_InfApo_a] = findInfAponeurosis((eco_a(muscle_y+1:end ,:) .* area_delete_a),centroidsInfApo_a);
-    y_InfApo_a = y_InfApo_a + muscle_y; 
-    [x_SupApo_a,y_SupApo_a] = findSupAponeurosis(eco_a(1:muscle_y,:),centroidsSupApo_a);
-    %Cálculo de la distancia en [mm] 
+%Cálculo de los valores para los mejores frames
+    y_SupApo_b = memoria_fascia_sup_inf(before_f,:,1);
+    y_InfApo_b  = memoria_fascia_sup_inf(before_f,:,2);
+    measure_y_sup_b = memoria_fascia_sup_inf(before_f,muscle_x,1);
+    measure_y_inf_b = memoria_fascia_sup_inf(before_f,muscle_x,2);
+    muscle_thickness_b = y_InfApo_b - y_SupApo_b;
+    
+    y_SupApo_a = memoria_fascia_sup_inf(after_f,:,1);
+    y_InfApo_a  = memoria_fascia_sup_inf(after_f,:,2);
+    measure_y_sup_a = memoria_fascia_sup_inf(after_f,muscle_x,1);
+    measure_y_inf_a = memoria_fascia_sup_inf(after_f,muscle_x,2);
     muscle_thickness_a = y_InfApo_a - y_SupApo_a;
-    measure_y_inf_a = y_InfApo_a(x_InfApo_a == muscle_x);
-    measure_y_sup_a = y_SupApo_a(x_SupApo_a == muscle_x);
-    %Escalamineto de los límites de las fascias de pixeles a [mm]
-    muscle_thickness_a = param * muscle_thickness_a;
-    x_InfApo_a = param * x_InfApo_a;
-    y_InfApo_a = param * y_InfApo_a;
-    x_SupApo_a = param * x_SupApo_a;
-    y_SupApo_a = param * y_SupApo_a;
-    measure_y_inf_a = param * measure_y_inf_a;
-    measure_y_sup_a = param * measure_y_sup_a;
     %% Plot Results
     %plot before and after stimulation
-
+    fprintf('Results for the best frames \n');
     figure
     subplot(1,2,1)
         imshow(eco_b,imref2d(size(eco_b),param,param))
         title(sprintf('Before Stimulation - Frame: %d ', before_f))
         hold on 
-        plot(x_InfApo_b,y_InfApo_b,'r--','LineWidth',3) 
-        plot(x_SupApo_b,y_SupApo_b,'r--','LineWidth',3) 
+        plot(x_InfApo,y_InfApo_b,'r--','LineWidth',3) 
+        plot(x_InfApo,y_SupApo_b,'r--','LineWidth',3) 
         plot([muscle_x muscle_x] * param,[measure_y_inf_b measure_y_sup_b],'yo','LineWidth',3)
         plot([muscle_x muscle_x] * param,[measure_y_inf_b measure_y_sup_b],'y-','LineWidth',3)
         ylabel('[mm]')
@@ -259,8 +271,8 @@ function [frame_time,eco_memory,memoria_fascia_sup_inf,Results] = Measure()
         imshow(eco_a,imref2d(size(eco_a),param,param))
         title(sprintf('After Stimulation - Frame: %d ', after_f))
         hold on 
-        plot(x_InfApo_a,y_InfApo_a,'r--','LineWidth',3) 
-        plot(x_SupApo_a,y_SupApo_a,'r--','LineWidth',3) 
+        plot(x_InfApo,y_InfApo_a,'r--','LineWidth',3) 
+        plot(x_InfApo,y_SupApo_a,'r--','LineWidth',3) 
         plot([muscle_x muscle_x] * param,[measure_y_inf_a measure_y_sup_a],'yo','LineWidth',3)
         plot([muscle_x muscle_x] * param,[measure_y_inf_a measure_y_sup_a],'y-','LineWidth',3)
         ylabel('[mm]')
@@ -281,6 +293,7 @@ function [frame_time,eco_memory,memoria_fascia_sup_inf,Results] = Measure()
         ylabel('[mm]')
         grid minor    
     %% Procesamiento de Resultados
+    fprintf('Saving results \n');
     thickness = array2table(memoria_distancia,'VariableNames',{'Frame','Second','Millimeters'});
     %frame_time = array2table(frame_time,'VaribalesNames',{'Frame','Second'});
 
@@ -288,6 +301,7 @@ function [frame_time,eco_memory,memoria_fascia_sup_inf,Results] = Measure()
     Results.Duration = v.Duration;
     Results.Frame_rate = v.FrameRate;
     Results.Scale_factor = param;
+    Results.Muscle_x_pixel = muscle_x;
     Results.Before_stimulacion_frame = before_f;
     Results.After_stimulation_frame = after_f;
     Results.Motion_frame_detection_1 = locs(1); 
