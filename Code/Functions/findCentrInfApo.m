@@ -31,15 +31,15 @@ function [centroidsInfApo, area_delete] = findCentrInfApo(eco)
     index = sub2ind(size(area), rIndex, cIndex);     % Linear indices
     area(index) = 1;  % Set the line points to white
     
-    v_1 = round([(size(eco,1) * 0.25) size(eco,2)]); %row col
-    v_2 = round([1 size(eco,2) * 0.75]);
-    x = [v_1(2) v_2(2)];                   % x coordinates
-    y = [v_1(1) v_2(1)];                   % y coordinates
-    nPoints = max(abs(diff(x)), abs(diff(y)))+1;    % Number of points in line
-    rIndex = round(linspace(y(1), y(2), nPoints));  % Row indices
-    cIndex = round(linspace(x(1), x(2), nPoints));  % Column indices
-    index = sub2ind(size(area), rIndex, cIndex);     % Linear indices
-    area(index) = 1;  % Set the line points to white
+%     v_1 = round([(size(eco,1) * 0.25) size(eco,2)]); %row col
+%     v_2 = round([1 size(eco,2) * 0.75]);
+%     x = [v_1(2) v_2(2)];                   % x coordinates
+%     y = [v_1(1) v_2(1)];                   % y coordinates
+%     nPoints = max(abs(diff(x)), abs(diff(y)))+1;    % Number of points in line
+%     rIndex = round(linspace(y(1), y(2), nPoints));  % Row indices
+%     cIndex = round(linspace(x(1), x(2), nPoints));  % Column indices
+%     index = sub2ind(size(area), rIndex, cIndex);     % Linear indices
+%     area(index) = 1;  % Set the line points to white
     
     
     area_l = area(:,1:round(size(eco,2) * 0.4));

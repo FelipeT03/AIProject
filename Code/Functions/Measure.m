@@ -10,7 +10,7 @@ function [frame_time,eco_memory,memoria_fascia_sup_inf,Results] = Measure()
     close all
 
     %% Parameters 
-    param = 0.121;%[mm/pixels] - (eco)D5.91cm - Factor de escalamiento
+    param = 0.0966;%0.121[mm/pixels] - (eco)D5.91cm - Factor de escalamiento // 0.0966[mm/pixels] - (eco)D4.44cm
     [video_name,path_v] = uigetfile('*.*','Select Video File');
     cut_area = [30 25 595 455];%área de análisis [30 25 595 487]
     v = VideoReader(strcat(path_v,video_name));
@@ -89,7 +89,7 @@ function [frame_time,eco_memory,memoria_fascia_sup_inf,Results] = Measure()
 
 
 
-    %% Training
+    %% Training y cálculo de la máscara
     %Entrenamiento para frames sin estimulación
     % Centroides para Aponeurosis Inferior
     [centroidsInfApo_b, area_delete_b] = findCentrInfApo(eco_b((muscle_y+1):end,:));
@@ -180,7 +180,10 @@ function [frame_time,eco_memory,memoria_fascia_sup_inf,Results] = Measure()
     y_InfApo_a  = memoria_fascia_sup_inf(after_f,:,2);
     muscle_thickness_a = y_InfApo_a - y_SupApo_a;
     %% Plot Results
-    figure
+    MTvsFrame = figure;
+    MTvsLength = figure;
+    
+    figure(MTvsFrame)
     Pause_t = 1/v.FrameRate;
     set(gcf, 'Position', get(0, 'Screensize'));
     
@@ -215,7 +218,7 @@ function [frame_time,eco_memory,memoria_fascia_sup_inf,Results] = Measure()
     
     %plot before and after stimulation
     fprintf('Results for the best frames \n');
-    figure
+    figure(MTvsLength)
     subplot(1,2,1)
         imshow(eco_b,imref2d(size(eco_b),param,param))
         title(sprintf('Before Stimulation - Frame: %d ', before_f))
@@ -271,4 +274,7 @@ function [frame_time,eco_memory,memoria_fascia_sup_inf,Results] = Measure()
     writetable(thickness,strcat(video_name,'_results/','Thickness.csv'))
     Results_table = struct2table(Results);
     writetable(Results_table,strcat(video_name,'_results/','Summary.csv'))
+    %Imágenes
+    saveas(MTvsFrame,strcat(video_name,'_results/','MTvsFrame.png'))
+    saveas(MTvsLength,strcat(video_name,'_results/','MTvsLength.png'))
 end 
