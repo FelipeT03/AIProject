@@ -181,7 +181,6 @@ function [frame_time,eco_memory,memoria_fascia_sup_inf,Results] = Measure()
     muscle_thickness_a = y_InfApo_a - y_SupApo_a;
     %% Plot Results
     MTvsFrame = figure;
-    MTvsLength = figure;
     
     figure(MTvsFrame)
     Pause_t = 1/v.FrameRate;
@@ -218,6 +217,7 @@ function [frame_time,eco_memory,memoria_fascia_sup_inf,Results] = Measure()
     
     %plot before and after stimulation
     fprintf('Results for the best frames \n');
+    MTvsLength = figure;
     figure(MTvsLength)
     subplot(1,2,1)
         imshow(eco_b,imref2d(size(eco_b),param,param))
@@ -258,23 +258,23 @@ function [frame_time,eco_memory,memoria_fascia_sup_inf,Results] = Measure()
     Results.After_stimulation_frame = after_f; %añadir unidades 
     Results.Motion_frame_detection_1 = locs(1); 
     Results.Motion_frame_detection_2 = locs(2);
-    Results.Before_stimulation_mean = mean(memoria_distancia(10:locs(1),3));
-    Results.Before_stimulation_variance = std(memoria_distancia(10:locs(1),3)) ^ 2;
-    Results.After_stimulation_mean = mean(memoria_distancia(locs(1):locs(2),3));
-    Results.After_stimulation_variance = std(memoria_distancia(locs(1):locs(2),3)) ^ 2;    
+    Results.Before_stimulation_mean_mm = mean(memoria_distancia(10:locs(1),3));
+    Results.Before_stimulation_variance_mm2 = std(memoria_distancia(10:locs(1),3)) ^ 2;
+    Results.After_stimulation_mean_mm = mean(memoria_distancia(locs(1):locs(2),3));
+    Results.After_stimulation_variance_mm2 = std(memoria_distancia(locs(1):locs(2),3)) ^ 2;    
     %% Mostrar y guardar los resultados    
     %Mostrando Resultados
     disp(Results)
 
     %Guardando Resultados
-    mkdir(strcat(video_name,'_results'))
-    save(strcat(video_name,'_results/','memoria_fascia_sup_inf.mat'),'memoria_fascia_sup_inf')
-    save(strcat(video_name,'_results/','frame_time.mat'),'frame_time')
-    save(strcat(video_name,'_results/','eco_memory.mat'),'eco_memory')
-    writetable(thickness,strcat(video_name,'_results/','Thickness.csv'))
-    Results_table = struct2table(Results);
-    writetable(Results_table,strcat(video_name,'_results/','Summary.csv'))
-    %Imágenes
-    saveas(MTvsFrame,strcat(video_name,'_results/','MTvsFrame.png'))
-    saveas(MTvsLength,strcat(video_name,'_results/','MTvsLength.png'))
+%     mkdir(strcat(video_name,'_results'))
+%     save(strcat(video_name,'_results/','memoria_fascia_sup_inf.mat'),'memoria_fascia_sup_inf')
+%     save(strcat(video_name,'_results/','frame_time.mat'),'frame_time')
+%     save(strcat(video_name,'_results/','eco_memory.mat'),'eco_memory')
+%     writetable(thickness,strcat(video_name,'_results/','Thickness.csv'))
+%     Results_table = struct2table(Results);
+%     writetable(Results_table,strcat(video_name,'_results/','Summary.csv'))
+%     %Imágenes
+%     saveas(MTvsFrame,strcat(video_name,'_results/','MTvsFrame.png'))
+%     saveas(MTvsLength,strcat(video_name,'_results/','MTvsLength.png'))
 end 

@@ -15,7 +15,7 @@ function [x_InfApo,y_InfApo] = findInfAponeurosis(eco,centroids)
     % Crear la base donde se va a formar la fascia inferior
     T = graythresh(eco);
     eco_T_r = imbinarize(eco,T);
-    eco_T_r = bwareaopen(eco_T_r,50);
+    eco_T_r = bwareaopen(eco_T_r,100);
     D = bwdist(eco_T_r);
     DL = watershed(D);
     eco_T_r = DL > 0;
