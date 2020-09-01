@@ -267,14 +267,15 @@ function [frame_time,eco_memory,memoria_fascia_sup_inf,Results] = Measure()
     disp(Results)
 
     %Guardando Resultados
-%     mkdir(strcat(video_name,'_results'))
-%     save(strcat(video_name,'_results/','memoria_fascia_sup_inf.mat'),'memoria_fascia_sup_inf')
-%     save(strcat(video_name,'_results/','frame_time.mat'),'frame_time')
-%     save(strcat(video_name,'_results/','eco_memory.mat'),'eco_memory')
-%     writetable(thickness,strcat(video_name,'_results/','Thickness.csv'))
-%     Results_table = struct2table(Results);
-%     writetable(Results_table,strcat(video_name,'_results/','Summary.csv'))
-%     %Imágenes
-%     saveas(MTvsFrame,strcat(video_name,'_results/','MTvsFrame.png'))
-%     saveas(MTvsLength,strcat(video_name,'_results/','MTvsLength.png'))
+    mkdir(strcat(video_name,'_results'))
+    save(strcat(video_name,'_results/','memoria_fascia_sup_inf.mat'),'memoria_fascia_sup_inf')
+    save(strcat(video_name,'_results/','frame_time.mat'),'frame_time')
+    save(strcat(video_name,'_results/','eco_memory.mat'),'eco_memory')
+    save(strcat(video_name,'_results/','Results.mat'),'Results')
+    writetable(thickness,strcat(video_name,'_results/','Thickness.csv'))
+    Results_table = struct2table(Results);
+    writetable(Results_table,strcat(video_name,'_results/','Summary.csv'))
+    %Imágenes
+    saveas(MTvsFrame,strcat(video_name,'_results/','MTvsFrame.png'))
+    saveas(MTvsLength,strcat(video_name,'_results/','MTvsLength.png'))
 end 
