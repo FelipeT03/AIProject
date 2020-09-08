@@ -1,5 +1,4 @@
-function [muscle_x, muscle_y, muscle_x_min, muscle_x_max] = muscle_x_y(eco)
-%Encuentra en los centroides para el cálculo de la Apo inferior
+function [muscle_x, muscle_y, muscle_x_min, muscle_x_max, muscle_y_max] = muscle_x_y(eco)
     %% Parameters
     K = 2;
     %% Tratamiento de datos
@@ -18,4 +17,8 @@ function [muscle_x, muscle_y, muscle_x_min, muscle_x_max] = muscle_x_y(eco)
     muscle_x_min = min(col);
     muscle_x_max = max(col);
     muscle_x = muscle_x -  muscle_x_min; %Al recortar la imagen se debe ajustar el centro
+    muscle_y_max = round(max(row) + (max(row) - muscle_y) * 0.3);
+    if muscle_y_max > size(eco,1)
+        muscle_y_max = size(eco,1);
+    end
 end 

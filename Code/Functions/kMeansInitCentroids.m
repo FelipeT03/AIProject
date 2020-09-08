@@ -4,11 +4,6 @@ function centroids = kMeansInitCentroids(X, K)
     
     randidx = randperm(size(X, 1)); 
     centroids = X(randidx(1:K), :);
-
-%     centroids = zeros(K, size(X,2));
-%     centroids(1) = min(X); 
-%     centroids(2) = max(X);
-%     randidx = randperm(size(X, 1)); 
-%     centroids(3:end,:) = X(randidx(1:K-2), :);    
+ 
 end
 
