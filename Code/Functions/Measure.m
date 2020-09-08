@@ -221,7 +221,7 @@ function [frame_time,eco_memory,memoria_fascia_sup_inf,Results] = Measure()
     figure(MTvsLength)
     subplot(1,2,1)
         imshow(eco_b,imref2d(size(eco_b),param,param))
-        title(sprintf('Before Stimulation - Frame: %d ', before_f))
+        title(sprintf('At Rest - Frame: %d ', before_f))
         hold on 
         plot(x_InfApo,y_InfApo_b,'r--','LineWidth',3) 
         plot(x_InfApo,y_SupApo_b,'r--','LineWidth',3) 
@@ -233,7 +233,7 @@ function [frame_time,eco_memory,memoria_fascia_sup_inf,Results] = Measure()
         hold off
     subplot(1,2,2)
         imshow(eco_a,imref2d(size(eco_a),param,param))
-        title(sprintf('After Stimulation - Frame: %d ', after_f))
+        title(sprintf('Under Stimulation - Frame: %d ', after_f))
         hold on 
         plot(x_InfApo,y_InfApo_a,'r--','LineWidth',3) 
         plot(x_InfApo,y_SupApo_a,'r--','LineWidth',3) 
