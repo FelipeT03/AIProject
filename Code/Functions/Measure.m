@@ -10,13 +10,14 @@ function [frame_time,eco_memory,memoria_fascia_sup_inf,Results] = Measure()
     close all
 
     %% Parameters 
-    param = 0.0966;%0.121[mm/pixels] - (eco)D5.91cm - Factor de escalamiento // 0.0966[mm/pixels] - (eco)D4.44cm
     [video_name,path_v] = uigetfile('*.*','Select Video File');
     cut_area = [30 25 595 455];%área de análisis [30 25 595 487]
     v = VideoReader(strcat(path_v,video_name));
     memoria_distancia = zeros(round(v.FrameRate * v.Duration),2);
     movimiento = zeros(round(v.FrameRate * v.Duration),2);
-
+    param = ScaleFactor(readFrame(v));
+    %param = 0.0966;%0.121[mm/pixels] - (eco)D5.91cm - Factor de escalamiento // 0.0966[mm/pixels] - (eco)D4.44cm
+    
 
     %% Detectar movimiento
     fprintf('Processing video... \nWait...\n');
