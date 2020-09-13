@@ -13,5 +13,5 @@ function Scale_Factor = ScaleFactor(ruler)
         ruler_number(:,:,j) = ruler(ruler_centroids_y(j) - 7:ruler_centroids_y(j) + 7,1:end);
     end
     Scale_Factor = (2 / (ruler_centroids_y(2) - ruler_centroids_y(1))) * 10 ; 
-    save('Functions\ruler_number.mat','ruler_number')
+    %save('Functions\ruler_number.mat','ruler_number')
 end

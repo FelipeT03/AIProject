@@ -20,7 +20,8 @@ function [frame_time,eco_memory,memoria_fascia_sup_inf,Results] = Measure()
     
 
     %% Detectar movimiento
-    fprintf('Processing video... \nWait...\n');
+    App_Status = waitbar(0,'Processing video...','Name','Wait');
+    %fprintf('Processing video... \nWait...\n');
     v.CurrentTime = 0;  
     opticFlow = opticalFlowHS;
     frame  = 0;
@@ -36,18 +37,25 @@ function [frame_time,eco_memory,memoria_fascia_sup_inf,Results] = Measure()
     end
 
     movimiento(1:10,:) = []; %Se genera un pico dentro del primer frame ya que se detecta un cambio.
-    [pks,locs] = findpeaks(movimiento(:,2),movimiento(:,1),'SortStr','descend','MinPeakDistance',5);
-    locs = sort(locs(1:2));     
+    [pks,locs_1] = findpeaks(movimiento(:,2),movimiento(:,1),'SortStr','descend','MinPeakDistance',5);
+    locs_1 = sort(locs_1(1:2));
+    [pks,locs_2] = findpeaks(-movimiento(:,2),movimiento(:,1),'SortStr','descend','MinPeakDistance',4);
+    locs_2 = [locs_2 ; locs_1];
+    locs_2 = sort(locs_2);
+    before_stimulation_end_frame = locs_2(find(locs_2 == locs_1(1)) - 1);
+    after_stimulation_start_frame = locs_2(find(locs_2 == locs_1(1)) + 1);
+    after_stimulation_end_frame = locs_2(find(locs_2 == locs_1(2)) - 1);
 
 
     %Se toma el frame más estático dentro de cada sección
-    [value_b,before_f] = min(movimiento(1:locs(1),2));
+    [value_b,before_f] = min(movimiento(1:locs_1(1),2));
     before_f = before_f + 10;
-    [value_a,after_f] = min(movimiento((locs(1) + 1):(locs(2) - 5),2));
-    after_f = after_f + 10 + locs(1);
+    [value_a,after_f] = min(movimiento((locs_1(1) + 1):(locs_1(2) - 5),2));
+    after_f = after_f + 10 + locs_1(1);
 
     %% Selección de los frames
-    fprintf('Selecting the best frames... \n');
+    waitbar(0.2,App_Status,'Selecting the best frames...');
+    %fprintf('Selecting the best frames... \n');
     v.CurrentTime = 0;
     %Frame en escala de grises y con rango de 0 a 1
     eco = readFrame(v);
@@ -108,7 +116,8 @@ function [frame_time,eco_memory,memoria_fascia_sup_inf,Results] = Measure()
 
     %% Results
     %Uso de los centroides del primer frame en todos los frames del video
-    fprintf('Processing results frame by frame... \nWait... \n');
+    waitbar(0.4,App_Status,'Processing results frame by frame...');
+    %fprintf('Processing results frame by frame... \nWait... \n');
     v.CurrentTime = 0;%Rewind to the beginning
 
     frame = 0;
@@ -119,10 +128,10 @@ function [frame_time,eco_memory,memoria_fascia_sup_inf,Results] = Measure()
     while hasFrame(v)
         pause(0.001)
         frame = frame + 1;
-        if frame == locs(1)
+        if frame == locs_1(1)
             area_delete = area_delete_a;
         end
-        if frame == locs(2)
+        if frame == locs_1(2)
             area_delete = area_delete_b;
         end
         eco = readFrame(v);
@@ -147,19 +156,26 @@ function [frame_time,eco_memory,memoria_fascia_sup_inf,Results] = Measure()
     
     
  %% Optimizing results   
-    fprintf('Optimizing results... \nIt may take a few seconds... \n');
-    for frame = 1:size(memoria_fascia_sup_inf,2)
-        if frame < locs(1) 
-            memoria_fascia_sup_inf(1:locs(1) - 1,frame,1) = smooth(memoria_fascia_sup_inf(1:locs(1) - 1,frame,1),0.1,'rloess');
-            memoria_fascia_sup_inf(1:locs(1) - 1,frame,2) = smooth(memoria_fascia_sup_inf(1:locs(1) - 1,frame,2),0.3,'rloess');
-        elseif frame < locs(2)
-            memoria_fascia_sup_inf(locs(1):locs(2) - 1,frame,1) = smooth(memoria_fascia_sup_inf(locs(1):locs(2) - 1,frame,1),0.1,'rloess');
-            memoria_fascia_sup_inf(locs(1):locs(2) - 1,frame,2) = smooth(memoria_fascia_sup_inf(locs(1):locs(2) - 1,frame,2),0.3,'rloess');
-        elseif frame >= locs(2)
-            memoria_fascia_sup_inf(locs(2):end,frame,1) = smooth(memoria_fascia_sup_inf(locs(2):end,frame,1),0.1,'rloess');
-            memoria_fascia_sup_inf(locs(2):end,frame,2) = smooth(memoria_fascia_sup_inf(locs(2):end,frame,2),0.3,'rloess');
+    waitbar(0.7,App_Status,{'Optimizing results.', 'It may take a few seconds...'});
+    %fprintf('Optimizing results... \nIt may take a few seconds... \n');
+    %Optimización en el tiempo
+    for x_value_time = 1:size(memoria_fascia_sup_inf,2)
+        if x_value_time < before_stimulation_end_frame 
+            memoria_fascia_sup_inf(1:before_stimulation_end_frame - 1,x_value_time,1) = smooth(memoria_fascia_sup_inf(1:before_stimulation_end_frame - 1,x_value_time,1),0.1,'rloess');
+            memoria_fascia_sup_inf(1:before_stimulation_end_frame - 1,x_value_time,2) = smooth(memoria_fascia_sup_inf(1:before_stimulation_end_frame - 1,x_value_time,2),0.3,'rloess');
+        elseif x_value_time < after_stimulation_start_frame
+            memoria_fascia_sup_inf(before_stimulation_end_frame:after_stimulation_start_frame - 1,x_value_time,1) = smooth(memoria_fascia_sup_inf(before_stimulation_end_frame:after_stimulation_start_frame - 1,x_value_time,1),0.1,'rloess');
+            memoria_fascia_sup_inf(before_stimulation_end_frame:after_stimulation_start_frame - 1,x_value_time,2) = smooth(memoria_fascia_sup_inf(before_stimulation_end_frame:after_stimulation_start_frame - 1,x_value_time,2),0.3,'rloess');
+        elseif x_value_time < after_stimulation_end_frame
+            memoria_fascia_sup_inf(after_stimulation_start_frame:after_stimulation_end_frame - 1,x_value_time,1) = smooth(memoria_fascia_sup_inf(after_stimulation_start_frame:after_stimulation_end_frame - 1,x_value_time,1),0.1,'rloess');
+            memoria_fascia_sup_inf(after_stimulation_start_frame:after_stimulation_end_frame - 1,x_value_time,2) = smooth(memoria_fascia_sup_inf(after_stimulation_start_frame:after_stimulation_end_frame - 1,x_value_time,2),0.3,'rloess');
+        elseif x_value_time >= after_stimulation_end_frame
+            memoria_fascia_sup_inf(after_stimulation_end_frame:end,x_value_time,1) = smooth(memoria_fascia_sup_inf(after_stimulation_end_frame:end,x_value_time,1),0.1,'rloess');
+            memoria_fascia_sup_inf(after_stimulation_end_frame:end,x_value_time,2) = smooth(memoria_fascia_sup_inf(after_stimulation_end_frame:end,x_value_time,2),0.3,'rloess');
         end
     end
+    waitbar(0.8,App_Status,{'Optimizing results.', 'It may take a few seconds...'});
+    %Optimización en el espacio
     for frame = 1:size(memoria_fascia_sup_inf,1)
         memoria_fascia_sup_inf(frame,:,1) = smooth(memoria_fascia_sup_inf(frame,:,1),0.1,'rloess');
         memoria_fascia_sup_inf(frame,:,2) = smooth(memoria_fascia_sup_inf(frame,:,2),0.1,'rloess');
@@ -170,7 +186,8 @@ function [frame_time,eco_memory,memoria_fascia_sup_inf,Results] = Measure()
     
     memoria_distancia(:,3) = (memoria_fascia_sup_inf(:,muscle_x,2) - memoria_fascia_sup_inf(:,muscle_x,1));
     frame_time = memoria_distancia(:,2);
-
+    
+    waitbar(1,App_Status,'Finishing');
     %% MT vs length
     %Cálculo de los valores para los mejores frames
     y_SupApo_b = memoria_fascia_sup_inf(before_f,:,1);
@@ -181,6 +198,8 @@ function [frame_time,eco_memory,memoria_fascia_sup_inf,Results] = Measure()
     y_InfApo_a  = memoria_fascia_sup_inf(after_f,:,2);
     muscle_thickness_a = y_InfApo_a - y_SupApo_a;
     %% Plot Results
+    close(App_Status)
+    
     MTvsFrame = figure;
     
     figure(MTvsFrame)
@@ -203,8 +222,11 @@ function [frame_time,eco_memory,memoria_fascia_sup_inf,Results] = Measure()
             subplot(1, 2, 2)
                 plot(memoria_distancia(1:frame,1),memoria_distancia(1:frame,3),'LineWidth',2) %medfilt1 quitamos picos 
                 hold on 
-                xline(locs(1),'--','LineWidth',2);
-                xline(locs(2),'--','LineWidth',2);
+                xline(before_stimulation_end_frame,'--','LineWidth',2);
+                xline(after_stimulation_start_frame,'--','LineWidth',2);
+                xline(after_stimulation_end_frame,'--','LineWidth',2);
+%                 xline(locs_1(1),'--','LineWidth',2);
+%                 xline(locs_1(2),'--','LineWidth',2);
                 hold off
                 title(strcat('Stimulation Video: ', video_name))
                 xlabel('Frame')
@@ -217,7 +239,7 @@ function [frame_time,eco_memory,memoria_fascia_sup_inf,Results] = Measure()
 
     
     %plot before and after stimulation
-    fprintf('Results for the best frames \n');
+    %fprintf('Results for the best frames \n');
     MTvsLength = figure;
     figure(MTvsLength)
     subplot(1,2,1)
@@ -247,7 +269,7 @@ function [frame_time,eco_memory,memoria_fascia_sup_inf,Results] = Measure()
 
    
     %% Procesamiento de Resultados
-    fprintf('Saving results \n');
+    %fprintf('Saving results \n');
     thickness = array2table(memoria_distancia,'VariableNames',{'Frame','Second','Millimeters'});
 
     Results.Name = video_name;
@@ -257,12 +279,12 @@ function [frame_time,eco_memory,memoria_fascia_sup_inf,Results] = Measure()
     Results.Muscle_x_pixel = muscle_x;
     Results.Before_stimulacion_frame = before_f;
     Results.After_stimulation_frame = after_f; %añadir unidades 
-    Results.Motion_frame_detection_1 = locs(1); 
-    Results.Motion_frame_detection_2 = locs(2);
-    Results.Before_stimulation_mean_mm = mean(memoria_distancia(10:locs(1),3));
-    Results.Before_stimulation_variance_mm2 = std(memoria_distancia(10:locs(1),3)) ^ 2;
-    Results.After_stimulation_mean_mm = mean(memoria_distancia(locs(1):locs(2),3));
-    Results.After_stimulation_variance_mm2 = std(memoria_distancia(locs(1):locs(2),3)) ^ 2;    
+    Results.Motion_frame_detection_1 = locs_1(1); 
+    Results.Motion_frame_detection_2 = locs_1(2);
+    Results.Before_stimulation_mean_mm = mean(memoria_distancia(1:before_stimulation_end_frame - 1,3));
+    Results.Before_stimulation_variance_mm2 = std(memoria_distancia(1:before_stimulation_end_frame - 1,3)) ^ 2;
+    Results.After_stimulation_mean_mm = mean(memoria_distancia(after_stimulation_start_frame:after_stimulation_end_frame - 1,3));
+    Results.After_stimulation_variance_mm2 = std(memoria_distancia(after_stimulation_start_frame:after_stimulation_end_frame - 1,3)) ^ 2;    
     %% Mostrar y guardar los resultados    
     %Mostrando Resultados
     disp(Results)

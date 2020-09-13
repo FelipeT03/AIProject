@@ -9,7 +9,7 @@ function [centroidsInfApo, area_delete] = findCentrInfApo(eco)
     %% area_delete
     T = graythresh(eco) + 0.05;
     BW = imbinarize(eco,T);
-    BW = bwareaopen(BW,500);
+    BW = bwareaopen(BW,50);
     D = bwdist(~bwconvhull(BW,'objects')); 
     D = D ./ max(D);
     D = D > 0.2;
