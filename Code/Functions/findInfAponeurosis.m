@@ -73,15 +73,8 @@ function [x_InfApo,y_InfApo] = findInfAponeurosis(eco,centroids)
 
     %% Encontrar los puntos que delimitan la figura
     [row,col] = find(eco_C);
-    col_start = col(1);
-    col_end = col(end);
-    vector = zeros(col_end - col_start + 1,2);
-    index = 0;
-    %Análisis por columna
-    for j = col_start:col_end
-        index = index + 1;
-        vector(index,:) = [j find(eco_C(:,j),1,'last')];
-    end
+    [C,IA] = unique(col,'last');
+    vector = [C row(IA)];
     ajuste = mean(vector(round(end*0.6):round(end*0.9),2));
     x_InfApo = 1:size(eco,2);
     y_InfApo = zeros(size(eco,2),1) + ajuste;

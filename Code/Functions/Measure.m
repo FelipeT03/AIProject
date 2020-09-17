@@ -4,6 +4,7 @@ function [eco_memory, memoria_fascia_sup_inf, Results] = Measure()
     %- Computer Vision System Toolbox 
     %- Image Processing Toolbox 
     %- Curve Fitting Toolbox
+    %- Deep Learning Toolbox
     %% Limpieza del área de trabajo
     clear
     clc
@@ -15,31 +16,48 @@ function [eco_memory, memoria_fascia_sup_inf, Results] = Measure()
     if video_name == 0
         return
     end
-    cut_area = [30 25 595 455];%área de análisis [30 25 595 487]
+    cut_area = [30 25 595 455];
     v = VideoReader(strcat(path_v,video_name));
     memoria_distancia = zeros(round(v.FrameRate * v.Duration),2);
     movimiento = zeros(round(v.FrameRate * v.Duration),2);
-    param = ScaleFactor(readFrame(v));
-    %param = 0.0966;%0.121[mm/pixels] - (eco)D5.91cm - Factor de escalamiento // 0.0966[mm/pixels] - (eco)D4.44cm
-    
+    param = ScaleFactor(readFrame(v));  
 
     %% Detectar movimiento
     App_Status = waitbar(0,'Processing video...','Name','Wait');
-    %fprintf('Processing video... \nWait...\n');
-    v.CurrentTime = 0;  
+    
+    v.CurrentTime = 0;
+    %Frame en escala de grises y con rango de 0 a 1
+    eco = readFrame(v);
+    eco = rgb2gray(eco);
+    eco = imcrop(eco,cut_area);
+    eco = imadjust(eco);
+    eco = double(eco);
+    eco = eco / max(eco,[],'all'); % range(0-1)
+
+    %Punto medio en x & y del musculo
+    [muscle_x, muscle_y, muscle_x_min, muscle_x_max, muscle_y_max] = muscle_x_y(eco);
+    cut_area(1) = cut_area(1) + muscle_x_min - 1;
+    cut_area(3) = muscle_x_max - muscle_x_min - 1;
+    %cut_area(4) = muscle_y_max;
+    
+    %Corte y procesamiento del video
+    eco_memory = read(v);
+    eco_memory = squeeze(eco_memory(:,:,1,:));
+    eco_memory = eco_memory(cut_area(2):cut_area(2) + cut_area(4),cut_area(1):cut_area(1) + cut_area(3),:);
+    eco_memory = imadjustn(eco_memory);
+    eco_memory = double(eco_memory);
+    eco_memory = eco_memory / max(eco_memory,[],'all');
+    
+    waitbar(0.1,App_Status,'Selecting the best frames...');
     opticFlow = opticalFlowHS;
-    frame  = 0;
-    while hasFrame(v)
-        frame = frame + 1;
-        frameRGB = readFrame(v);
-        frameGray = rgb2gray(frameRGB);
-        flow = estimateFlow(opticFlow,frameGray);
+
+    for frame = 1:size(eco_memory,3)
+        flow = estimateFlow(opticFlow,eco_memory(:,:,frame));
         movimiento(frame,1) = frame;
         movimiento(frame,2) = sum([flow.Magnitude],'all');
-        memoria_distancia(frame,1) = frame;
         memoria_distancia(frame,2) = v.CurrentTime;
     end
-
+    movimiento(:,1) = 1:size(eco_memory,3);
     movimiento(1:10,:) = []; %Se genera un pico dentro del primer frame ya que se detecta un cambio.
     [pks,locs_1] = findpeaks(movimiento(:,2),movimiento(:,1),'SortStr','descend','MinPeakDistance',5);
     locs_1 = sort(locs_1(1:2));
@@ -59,22 +77,6 @@ function [eco_memory, memoria_fascia_sup_inf, Results] = Measure()
 
     %% Selección de los frames
     waitbar(0.2,App_Status,'Selecting the best frames...');
-    %fprintf('Selecting the best frames... \n');
-    v.CurrentTime = 0;
-    %Frame en escala de grises y con rango de 0 a 1
-    eco = readFrame(v);
-    eco = rgb2gray(eco);
-    eco = imcrop(eco,cut_area);
-    eco = imadjust(eco);
-    eco = double(eco);
-    eco = eco / max(eco,[],'all'); % range(0-1)
-
-    %Punto medio en x & y del musculo
-    [muscle_x, muscle_y, muscle_x_min, muscle_x_max, muscle_y_max] = muscle_x_y(eco);
-    cut_area(1) = cut_area(1) + muscle_x_min - 1;
-    cut_area(3) = muscle_x_max - muscle_x_min - 1;
-    %cut_area(4) = muscle_y_max;
-
 
     %Se realizan dos entrenamientos en dos frames diferentes, se toma el frame
     %más estático dentro de la zona sin estimulación y de la zona con
@@ -83,23 +85,9 @@ function [eco_memory, memoria_fascia_sup_inf, Results] = Measure()
 
 
     %Before stimulation
-    v.CurrentTime = memoria_distancia(before_f - 1,2);
-    eco_b = readFrame(v);
-    eco_b = rgb2gray(eco_b);
-    eco_b = imcrop(eco_b,cut_area);
-    eco_b = imadjust(eco_b);
-    eco_b = double(eco_b);
-    eco_b = eco_b / max(eco_b,[],'all'); % range(0-1)
-
+    eco_b = eco_memory(:,:,before_f);
     %After Stimulation
-    v.CurrentTime = memoria_distancia(after_f - 1,2);
-    eco_a = readFrame(v);
-    eco_a = rgb2gray(eco_a);
-    eco_a = imcrop(eco_a,cut_area);
-    eco_a = imadjust(eco_a);
-    eco_a = double(eco_a);
-    eco_a = eco_a / max(eco_a,[],'all'); % range(0-1)
-
+    eco_a = eco_memory(:,:,after_f);
 
 
     %% Training y cálculo de la máscara
@@ -115,40 +103,31 @@ function [eco_memory, memoria_fascia_sup_inf, Results] = Measure()
     [centroidsInfApo_a, area_delete_a] = findCentrInfApo(eco_a((muscle_y+1):end,:));
     area_delete_a = area_delete_a | area_delete_b; %el area despues de la estimulacion no puede ser mas pequeña por lo que se suman ambas para asegurar que mínimo se tiene el mismo tamaño de área
     % Centroides para Aponeurosis Superior
-    centroidsSupApo_a = findCentrSupApo(eco_a(1:muscle_y,:));
+    %centroidsSupApo_a = findCentrSupApo(eco_a(1:muscle_y,:));
 
 
     %% Results
     %Uso de los centroides del primer frame en todos los frames del video
     waitbar(0.4,App_Status,'Processing results frame by frame...');
-    %fprintf('Processing results frame by frame... \nWait... \n');
-    v.CurrentTime = 0;%Rewind to the beginning
-
-    frame = 0;
 
     memoria_fascia_sup_inf = zeros(round(v.FrameRate * v.Duration),size(eco_b,2),2);
-    eco_memory = zeros(size(eco_b,1),size(eco_b,2),round(v.FrameRate * v.Duration));
+    
+    %Análisis por frames
     area_delete = area_delete_b;
-    while hasFrame(v)
-        pause(0.001)
-        frame = frame + 1;
+    waitbar(0.5,App_Status,'Processing results frame by frame...');
+    tic
+    for frame = 1:size(eco_memory,3)
         if frame == locs_1(1)
             area_delete = area_delete_a;
         end
         if frame == locs_1(2)
             area_delete = area_delete_b;
         end
-        eco = readFrame(v);
-        eco = imcrop(eco,cut_area);
-        eco = rgb2gray(eco);
-        eco = imadjust(eco);
-        eco = double(eco);
-        eco = eco / max(eco,[],'all');
-        eco_memory(:,:,frame) = eco;
         %Vector con los valores, en pixeles, de los límites a medir
-        [x_InfApo,y_InfApo] = findInfAponeurosis((eco(muscle_y+1:end ,:) .* area_delete),centroidsInfApo_b);
-        y_InfApo = y_InfApo + muscle_y; 
-        [x_SupApo,y_SupApo] = findSupAponeurosis(eco(1:muscle_y,:),centroidsSupApo_b);
+        [x_InfApo,y_InfApo] = findInfAponeurosis((eco_memory(muscle_y+1:end ,:,frame) .* area_delete),centroidsInfApo_b);
+        y_InfApo = y_InfApo + muscle_y;
+        [x_SupApo,y_SupApo] = findSupAponeurosis(eco_memory(1:muscle_y,:,frame),centroidsSupApo_b);
+
         %Cálculo de la distancia en [mm] 
         x_InfApo = param * x_InfApo;
         y_InfApo = param * y_InfApo;
@@ -158,10 +137,9 @@ function [eco_memory, memoria_fascia_sup_inf, Results] = Measure()
         memoria_fascia_sup_inf(frame,:,2) = y_InfApo;
     end
     
-    
  %% Optimizing results   
     waitbar(0.7,App_Status,{'Optimizing results.', 'It may take a few seconds...'});
-    %fprintf('Optimizing results... \nIt may take a few seconds... \n');
+
     %Optimización en el tiempo
     for x_value_time = 1:size(memoria_fascia_sup_inf,2)
         if x_value_time < before_stimulation_end_frame 
@@ -184,9 +162,7 @@ function [eco_memory, memoria_fascia_sup_inf, Results] = Measure()
         memoria_fascia_sup_inf(frame,:,1) = smooth(memoria_fascia_sup_inf(frame,:,1),0.1,'rloess');
         memoria_fascia_sup_inf(frame,:,2) = smooth(memoria_fascia_sup_inf(frame,:,2),0.1,'rloess');
     end
-    
-    
-    
+     
     
     memoria_distancia(:,3) = (memoria_fascia_sup_inf(:,muscle_x,2) - memoria_fascia_sup_inf(:,muscle_x,1));
     frame_time = memoria_distancia(:,2);
@@ -202,36 +178,35 @@ function [eco_memory, memoria_fascia_sup_inf, Results] = Measure()
     y_InfApo_a  = memoria_fascia_sup_inf(after_f,:,2);
     muscle_thickness_a = y_InfApo_a - y_SupApo_a;
     %% Plot Results
-    close(App_Status)
     
     %plot before and after stimulation
     %fprintf('Results for the best frames \n');
-    MTvsLength = figure;
-    figure(MTvsLength)
-    subplot(1,2,1)
-        imshow(eco_b,imref2d(size(eco_b),param,param))
-        title(sprintf('At Rest - Frame: %d ', before_f))
-        hold on 
-        plot(x_InfApo,y_InfApo_b,'r--','LineWidth',3) 
-        plot(x_InfApo,y_SupApo_b,'r--','LineWidth',3) 
-        ylabel('[mm]')
-        yyaxis right
-        plot(x_InfApo,muscle_thickness_b,'LineWidth',3)
-        ylabel('Muscle Thickness [mm]')
-        xlabel('Longitudinal Axis [mm]')
-        hold off
-    subplot(1,2,2)
-        imshow(eco_a,imref2d(size(eco_a),param,param))
-        title(sprintf('Under Stimulation - Frame: %d ', after_f))
-        hold on 
-        plot(x_InfApo,y_InfApo_a,'r--','LineWidth',3) 
-        plot(x_InfApo,y_SupApo_a,'r--','LineWidth',3) 
-        ylabel('[mm]')
-        yyaxis right
-        plot(x_InfApo,muscle_thickness_a,'LineWidth',3)
-        ylabel('Muscle Thickness [mm]')
-        xlabel('Longitudinal Axis [mm]')
-        hold off
+%     MTvsLength = figure;
+%     figure(MTvsLength)
+%     subplot(1,2,1)
+%         imshow(eco_b,imref2d(size(eco_b),param,param))
+%         title(sprintf('At Rest - Frame: %d ', before_f))
+%         hold on 
+%         plot(x_InfApo,y_InfApo_b,'r--','LineWidth',3) 
+%         plot(x_InfApo,y_SupApo_b,'r--','LineWidth',3) 
+%         ylabel('[mm]')
+%         yyaxis right
+%         plot(x_InfApo,muscle_thickness_b,'LineWidth',3)
+%         ylabel('Muscle Thickness [mm]')
+%         xlabel('Longitudinal Axis [mm]')
+%         hold off
+%     subplot(1,2,2)
+%         imshow(eco_a,imref2d(size(eco_a),param,param))
+%         title(sprintf('Under Stimulation - Frame: %d ', after_f))
+%         hold on 
+%         plot(x_InfApo,y_InfApo_a,'r--','LineWidth',3) 
+%         plot(x_InfApo,y_SupApo_a,'r--','LineWidth',3) 
+%         ylabel('[mm]')
+%         yyaxis right
+%         plot(x_InfApo,muscle_thickness_a,'LineWidth',3)
+%         ylabel('Muscle Thickness [mm]')
+%         xlabel('Longitudinal Axis [mm]')
+%         hold off
 
    
     %% Procesamiento de Resultados
@@ -269,6 +244,6 @@ function [eco_memory, memoria_fascia_sup_inf, Results] = Measure()
     Results_table = struct2table(Results);
     writetable(Results_table,strcat(video_name,'_results/','Summary.csv'))
     %Imágenes
-%     saveas(MTvsFrame,strcat(video_name,'_results/','MTvsFrame.png'))
-    saveas(MTvsLength,strcat(video_name,'_results/','MTvsLength.png'))
+%     saveas(MTvsLength,strcat(video_name,'_results/','MTvsLength.png'))
+    close(App_Status)
 end 
