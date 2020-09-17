@@ -204,44 +204,6 @@ function [eco_memory, memoria_fascia_sup_inf, Results] = Measure()
     %% Plot Results
     close(App_Status)
     
-%     MTvsFrame = figure;
-%     
-%     figure(MTvsFrame)
-%     Pause_t = 1/v.FrameRate;
-%     set(gcf, 'Position', get(0, 'Screensize'));
-%     
-%         for frame = 1:size(memoria_fascia_sup_inf,1)
-%             subplot(1, 2, 1)
-%                 imshow(eco_memory(:,:,frame),imref2d(size(eco_memory(:,:,1)),param,param))
-%                 title(sprintf('Frame: %d ', frame))
-%                 hold on
-%                 plot([muscle_x muscle_x] * param,[memoria_fascia_sup_inf(frame,muscle_x,2) memoria_fascia_sup_inf(frame,muscle_x,1)],'yo','LineWidth',3)
-%                 plot([muscle_x muscle_x] * param,[memoria_fascia_sup_inf(frame,muscle_x,2) memoria_fascia_sup_inf(frame,muscle_x,1)],'y-','LineWidth',3)
-%                 plot((1:size(eco_memory(:,:,1),2)) .* param, memoria_fascia_sup_inf(frame,:,1),'r--','LineWidth',3)
-%                 plot((1:size(eco_memory(:,:,1),2)) .* param, memoria_fascia_sup_inf(frame,:,2),'r--','LineWidth',3)
-%                 hold off
-%                 xlabel('[mm]')
-%                 ylabel('[mm]')
-%             
-%             subplot(1, 2, 2)
-%                 plot(memoria_distancia(1:frame,1),memoria_distancia(1:frame,3),'LineWidth',2) %medfilt1 quitamos picos 
-%                 hold on 
-%                 xline(before_stimulation_end_frame,'--','LineWidth',2);
-%                 xline(after_stimulation_start_frame,'--','LineWidth',2);
-%                 xline(after_stimulation_end_frame,'--','LineWidth',2);
-% %                 xline(locs_1(1),'--','LineWidth',2);
-% %                 xline(locs_1(2),'--','LineWidth',2);
-%                 hold off
-%                 title(strcat('Stimulation Video: ', video_name))
-%                 xlabel('Frame')
-%                 ylabel(sprintf('Muscle Thickness [mm] (Longitudinal Axis = %.2f [mm])', muscle_x * param))
-%                 grid minor 
-% 
-%            
-%             pause(Pause_t)
-%         end
-
-    
     %plot before and after stimulation
     %fprintf('Results for the best frames \n');
     MTvsLength = figure;
@@ -283,12 +245,16 @@ function [eco_memory, memoria_fascia_sup_inf, Results] = Measure()
     Results.Muscle_x_pixel = muscle_x;
     Results.Before_stimulacion_frame = before_f;
     Results.After_stimulation_frame = after_f; %añadir unidades 
-    Results.Motion_frame_detection_1 = locs_1(1); 
-    Results.Motion_frame_detection_2 = locs_1(2);
-    Results.Before_stimulation_mean_mm = mean(memoria_distancia(1:before_stimulation_end_frame - 1,3));
-    Results.Before_stimulation_variance_mm2 = std(memoria_distancia(1:before_stimulation_end_frame - 1,3)) ^ 2;
-    Results.After_stimulation_mean_mm = mean(memoria_distancia(after_stimulation_start_frame:after_stimulation_end_frame - 1,3));
-    Results.After_stimulation_variance_mm2 = std(memoria_distancia(after_stimulation_start_frame:after_stimulation_end_frame - 1,3)) ^ 2;    
+    Results.AtRest_frames = [1 (before_stimulation_end_frame - 1)]; 
+    Results.AtRest_duration_s = (1 / v.FrameRate) * (Results.AtRest_frames(2) - Results.AtRest_frames(1));
+    Results.AtRest_mean_mm = mean(memoria_distancia(1:before_stimulation_end_frame - 1,3));
+    Results.AtRest_variance_mm2 = std(memoria_distancia(1:before_stimulation_end_frame - 1,3)) ^ 2;
+    Results.Rise_frames = [before_stimulation_end_frame (after_stimulation_start_frame - 1)];
+    Results.Rise_duration_s = (1 / v.FrameRate) * (Results.Rise_frames(2) - Results.Rise_frames(1));
+    Results.UnderStimulation_frames = [after_stimulation_start_frame (after_stimulation_end_frame - 1)];
+    Results.UnderStimulation_duration_s = (1 / v.FrameRate) * (Results.UnderStimulation_frames(2) - Results.UnderStimulation_frames(1));
+    Results.UnderStimulation_mean_mm = mean(memoria_distancia(after_stimulation_start_frame:after_stimulation_end_frame - 1,3));
+    Results.UnderStimulation_variance_mm2 = std(memoria_distancia(after_stimulation_start_frame:after_stimulation_end_frame - 1,3)) ^ 2;    
     %% Mostrar y guardar los resultados    
     %Mostrando Resultados
     %disp(Results)
