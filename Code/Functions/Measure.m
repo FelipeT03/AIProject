@@ -115,7 +115,7 @@ function [eco_memory, memoria_fascia_sup_inf, Results] = Measure()
     %Análisis por frames
     area_delete = area_delete_b;
     waitbar(0.5,App_Status,'Processing results frame by frame...');
-    tic
+ 
     for frame = 1:size(eco_memory,3)
         if frame == locs_1(1)
             area_delete = area_delete_a;
@@ -129,7 +129,6 @@ function [eco_memory, memoria_fascia_sup_inf, Results] = Measure()
         [x_SupApo,y_SupApo] = findSupAponeurosis(eco_memory(1:muscle_y,:,frame),centroidsSupApo_b);
 
         %Cálculo de la distancia en [mm] 
-        x_InfApo = param * x_InfApo;
         y_InfApo = param * y_InfApo;
         y_SupApo = param * y_SupApo;
 
@@ -170,43 +169,13 @@ function [eco_memory, memoria_fascia_sup_inf, Results] = Measure()
     waitbar(1,App_Status,'Finishing');
     %% MT vs length
     %Cálculo de los valores para los mejores frames
-    y_SupApo_b = memoria_fascia_sup_inf(before_f,:,1);
-    y_InfApo_b  = memoria_fascia_sup_inf(before_f,:,2);
-    muscle_thickness_b = y_InfApo_b - y_SupApo_b;
-    
-    y_SupApo_a = memoria_fascia_sup_inf(after_f,:,1);
-    y_InfApo_a  = memoria_fascia_sup_inf(after_f,:,2);
-    muscle_thickness_a = y_InfApo_a - y_SupApo_a;
-    %% Plot Results
-    
-    %plot before and after stimulation
-    %fprintf('Results for the best frames \n');
-%     MTvsLength = figure;
-%     figure(MTvsLength)
-%     subplot(1,2,1)
-%         imshow(eco_b,imref2d(size(eco_b),param,param))
-%         title(sprintf('At Rest - Frame: %d ', before_f))
-%         hold on 
-%         plot(x_InfApo,y_InfApo_b,'r--','LineWidth',3) 
-%         plot(x_InfApo,y_SupApo_b,'r--','LineWidth',3) 
-%         ylabel('[mm]')
-%         yyaxis right
-%         plot(x_InfApo,muscle_thickness_b,'LineWidth',3)
-%         ylabel('Muscle Thickness [mm]')
-%         xlabel('Longitudinal Axis [mm]')
-%         hold off
-%     subplot(1,2,2)
-%         imshow(eco_a,imref2d(size(eco_a),param,param))
-%         title(sprintf('Under Stimulation - Frame: %d ', after_f))
-%         hold on 
-%         plot(x_InfApo,y_InfApo_a,'r--','LineWidth',3) 
-%         plot(x_InfApo,y_SupApo_a,'r--','LineWidth',3) 
-%         ylabel('[mm]')
-%         yyaxis right
-%         plot(x_InfApo,muscle_thickness_a,'LineWidth',3)
-%         ylabel('Muscle Thickness [mm]')
-%         xlabel('Longitudinal Axis [mm]')
-%         hold off
+%     y_SupApo_b = memoria_fascia_sup_inf(before_f,:,1);
+%     y_InfApo_b  = memoria_fascia_sup_inf(before_f,:,2);
+%     muscle_thickness_b = y_InfApo_b - y_SupApo_b;
+%     
+%     y_SupApo_a = memoria_fascia_sup_inf(after_f,:,1);
+%     y_InfApo_a  = memoria_fascia_sup_inf(after_f,:,2);
+%     muscle_thickness_a = y_InfApo_a - y_SupApo_a;
 
    
     %% Procesamiento de Resultados
@@ -219,7 +188,7 @@ function [eco_memory, memoria_fascia_sup_inf, Results] = Measure()
     Results.Scale_factor = param;
     Results.Muscle_x_pixel = muscle_x;
     Results.Before_stimulacion_frame = before_f;
-    Results.After_stimulation_frame = after_f; %añadir unidades 
+    Results.After_stimulation_frame = after_f; 
     Results.AtRest_frames = [1 (before_stimulation_end_frame - 1)]; 
     Results.AtRest_duration_s = (1 / v.FrameRate) * (Results.AtRest_frames(2) - Results.AtRest_frames(1));
     Results.AtRest_mean_mm = mean(memoria_distancia(1:before_stimulation_end_frame - 1,3));
@@ -231,9 +200,6 @@ function [eco_memory, memoria_fascia_sup_inf, Results] = Measure()
     Results.UnderStimulation_mean_mm = mean(memoria_distancia(after_stimulation_start_frame:after_stimulation_end_frame - 1,3));
     Results.UnderStimulation_variance_mm2 = std(memoria_distancia(after_stimulation_start_frame:after_stimulation_end_frame - 1,3)) ^ 2;    
     %% Mostrar y guardar los resultados    
-    %Mostrando Resultados
-    %disp(Results)
-
     %Guardando Resultados
     mkdir(strcat(video_name,'_results'))
     save(strcat(video_name,'_results/','memoria_fascia_sup_inf.mat'),'memoria_fascia_sup_inf')
@@ -243,7 +209,5 @@ function [eco_memory, memoria_fascia_sup_inf, Results] = Measure()
     writetable(thickness,strcat(video_name,'_results/','Thickness.csv'))
     Results_table = struct2table(Results);
     writetable(Results_table,strcat(video_name,'_results/','Summary.csv'))
-    %Imágenes
-%     saveas(MTvsLength,strcat(video_name,'_results/','MTvsLength.png'))
     close(App_Status)
 end 

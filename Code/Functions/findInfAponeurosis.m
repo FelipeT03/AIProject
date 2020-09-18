@@ -21,16 +21,10 @@ function [x_InfApo,y_InfApo] = findInfAponeurosis(eco,centroids)
     eco_T_r = DL > 0;
     
    
-    S = regionprops(eco_T_r,'Extrema','Centroid','Area');
+    S = regionprops(eco_T_r,'Area','Centroid');
     numObj = numel(S); 
-    eco_T_centroids = zeros(numObj,2);
-    eco_T_extrema = zeros(numObj,2);
-    eco_T_area = zeros(numObj,1);
-    for k = 1 : numObj
-        eco_T_centroids(k,:) = [S(k).Centroid(1), S(k).Centroid(2)]; 
-        eco_T_extrema(k,:) = [S(k).Extrema(2,1), S(k).Extrema(2,2)]; 
-        eco_T_area(k) = S(k).Area(1);
-    end
+    eco_T_centroids = (reshape([S.Centroid],[2 numObj]))';
+    eco_T_area = ([S.Area])';
     img_size_eco_x = img_size_eco(2);
     img_size_eco_y = img_size_eco(1);
 
@@ -44,9 +38,8 @@ function [x_InfApo,y_InfApo] = findInfAponeurosis(eco,centroids)
     CC = bwconncomp(eco_T_r, 8);
     L = labelmatrix(CC);
     for  k = 1:length(value_p)
-        eco_C_delete = eco_C_delete + ismember(L, find(eco_T_area == eco_T_area(value_p(k)))); 
+        eco_C_delete = eco_C_delete | ismember(L, find(eco_T_area == eco_T_area(value_p(k)))); 
     end
-    eco_C_delete = eco_C_delete > 0;
     se90 = strel('line',20,90); 
     se0 = strel('line',20,0);
     eco_C_delete = imdilate(eco_C_delete,[se90 se0]);
