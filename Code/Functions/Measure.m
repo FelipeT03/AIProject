@@ -14,6 +14,9 @@ function [eco_memory, memoria_fascia_sup_inf, Results] = Measure()
     [video_name,path_v] = uigetfile('*.*','Select Video File');
     %En caso de cancelar la acción el programa se deja de ejecutar 
     if video_name == 0
+        eco_memory = 0; 
+        memoria_fascia_sup_inf = 0;
+        Results = 0;
         return
     end
     cut_area = [30 25 595 455];
@@ -166,20 +169,8 @@ function [eco_memory, memoria_fascia_sup_inf, Results] = Measure()
     memoria_distancia(:,3) = (memoria_fascia_sup_inf(:,muscle_x,2) - memoria_fascia_sup_inf(:,muscle_x,1));
     frame_time = memoria_distancia(:,2);
     
-    waitbar(1,App_Status,'Finishing');
-    %% MT vs length
-    %Cálculo de los valores para los mejores frames
-%     y_SupApo_b = memoria_fascia_sup_inf(before_f,:,1);
-%     y_InfApo_b  = memoria_fascia_sup_inf(before_f,:,2);
-%     muscle_thickness_b = y_InfApo_b - y_SupApo_b;
-%     
-%     y_SupApo_a = memoria_fascia_sup_inf(after_f,:,1);
-%     y_InfApo_a  = memoria_fascia_sup_inf(after_f,:,2);
-%     muscle_thickness_a = y_InfApo_a - y_SupApo_a;
-
-   
+    waitbar(1,App_Status,'Saving Results');   
     %% Procesamiento de Resultados
-    %fprintf('Saving results \n');
     thickness = array2table(memoria_distancia,'VariableNames',{'Frame','Second','Millimeters'});
 
     Results.Name = video_name;
