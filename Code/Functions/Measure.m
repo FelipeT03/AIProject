@@ -38,7 +38,7 @@ function [eco_memory, memoria_fascia_sup_inf, Results] = Measure()
     eco = eco / max(eco,[],'all'); % range(0-1)
 
     %Punto medio en x & y del musculo
-    [muscle_x, muscle_y, muscle_x_min, muscle_x_max, muscle_y_max] = muscle_x_y(eco);
+    [muscle_x, muscle_y, muscle_x_min, muscle_x_max, ~] = muscle_x_y(eco);
     cut_area(1) = cut_area(1) + muscle_x_min - 1;
     cut_area(3) = muscle_x_max - muscle_x_min - 1;
     %cut_area(4) = muscle_y_max;
@@ -62,9 +62,9 @@ function [eco_memory, memoria_fascia_sup_inf, Results] = Measure()
     end
     movimiento(:,1) = 1:size(eco_memory,3);
     movimiento(1:10,:) = []; %Se genera un pico dentro del primer frame ya que se detecta un cambio.
-    [pks,locs_1] = findpeaks(movimiento(:,2),movimiento(:,1),'SortStr','descend','MinPeakDistance',5);
+    [~,locs_1] = findpeaks(movimiento(:,2),movimiento(:,1),'SortStr','descend','MinPeakDistance',5);
     locs_1 = sort(locs_1(1:2));
-    [pks,locs_2] = findpeaks(-movimiento(:,2),movimiento(:,1),'SortStr','descend','MinPeakDistance',4);
+    [~,locs_2] = findpeaks(-movimiento(:,2),movimiento(:,1),'SortStr','descend','MinPeakDistance',4);
     locs_2 = [locs_2 ; locs_1];
     locs_2 = sort(locs_2);
     before_stimulation_end_frame = locs_2(find(locs_2 == locs_1(1)) - 1);
@@ -73,9 +73,9 @@ function [eco_memory, memoria_fascia_sup_inf, Results] = Measure()
 
 
     %Se toma el frame más estático dentro de cada sección
-    [value_b,before_f] = min(movimiento(1:locs_1(1),2));
+    [~,before_f] = min(movimiento(1:locs_1(1),2));
     before_f = before_f + 10;
-    [value_a,after_f] = min(movimiento((locs_1(1) + 1):(locs_1(2) - 5),2));
+    [~,after_f] = min(movimiento((locs_1(1) + 1):(locs_1(2) - 5),2));
     after_f = after_f + 10 + locs_1(1);
 
     %% Selección de los frames
@@ -103,7 +103,7 @@ function [eco_memory, memoria_fascia_sup_inf, Results] = Measure()
 
     %Entrenamiento para frames con estimulación
     % Centroides para Aponeurosis Inferior
-    [centroidsInfApo_a, area_delete_a] = findCentrInfApo(eco_a((muscle_y+1):end,:));
+    [~, area_delete_a] = findCentrInfApo(eco_a((muscle_y+1):end,:));
     area_delete_a = area_delete_a | area_delete_b; %el area despues de la estimulacion no puede ser mas pequeña por lo que se suman ambas para asegurar que mínimo se tiene el mismo tamaño de área
     % Centroides para Aponeurosis Superior
     %centroidsSupApo_a = findCentrSupApo(eco_a(1:muscle_y,:));
@@ -127,9 +127,9 @@ function [eco_memory, memoria_fascia_sup_inf, Results] = Measure()
             area_delete = area_delete_b;
         end
         %Vector con los valores, en pixeles, de los límites a medir
-        [x_InfApo,y_InfApo] = findInfAponeurosis((eco_memory(muscle_y+1:end ,:,frame) .* area_delete),centroidsInfApo_b);
+        [~,y_InfApo] = findInfAponeurosis((eco_memory(muscle_y+1:end ,:,frame) .* area_delete),centroidsInfApo_b);
         y_InfApo = y_InfApo + muscle_y;
-        [x_SupApo,y_SupApo] = findSupAponeurosis(eco_memory(1:muscle_y,:,frame),centroidsSupApo_b);
+        [~,y_SupApo] = findSupAponeurosis(eco_memory(1:muscle_y,:,frame),centroidsSupApo_b);
 
         %Cálculo de la distancia en [mm] 
 %         y_InfApo = param * y_InfApo;
