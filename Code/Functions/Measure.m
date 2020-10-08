@@ -99,7 +99,7 @@ function [eco_memory, memoria_fascia_sup_inf, Results] = Measure()
     [centroidsInfApo_b, area_delete_b] = findCentrInfApo(eco_b((muscle_y+1):end,:));
 
     % Centroides para Aponeurosis Superior
-    centroidsSupApo_b = findCentrSupApo(eco_b(1:muscle_y,:));
+    [centroidsSupApo_b, mask_sup] = findCentrSupApo(eco_b(1:muscle_y,:));
 
     %Entrenamiento para frames con estimulación
     % Centroides para Aponeurosis Inferior
@@ -129,11 +129,7 @@ function [eco_memory, memoria_fascia_sup_inf, Results] = Measure()
         %Vector con los valores, en pixeles, de los límites a medir
         [~,y_InfApo] = findInfAponeurosis((eco_memory(muscle_y+1:end ,:,frame) .* area_delete),centroidsInfApo_b);
         y_InfApo = y_InfApo + muscle_y;
-        [~,y_SupApo] = findSupAponeurosis(eco_memory(1:muscle_y,:,frame),centroidsSupApo_b);
-
-        %Cálculo de la distancia en [mm] 
-%         y_InfApo = param * y_InfApo;
-%         y_SupApo = param * y_SupApo;
+        [~,y_SupApo] = findSupAponeurosis(eco_memory(1:muscle_y,:,frame).* mask_sup,centroidsSupApo_b);
 
         memoria_fascia_sup_inf(frame,:,1) = y_SupApo;
         memoria_fascia_sup_inf(frame,:,2) = y_InfApo;
