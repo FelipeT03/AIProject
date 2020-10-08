@@ -150,27 +150,11 @@ function [eco_memory, memoria_fascia_sup_inf, Results] = Measure()
     memoria_fascia_sup_inf(before_stimulation_end_frame:after_stimulation_start_frame - 1,:,2) = filloutliers(memoria_fascia_sup_inf(before_stimulation_end_frame:after_stimulation_start_frame - 1,:,2),'previous','quartiles');
     memoria_fascia_sup_inf(after_stimulation_start_frame:after_stimulation_end_frame - 1,:,2) = filloutliers(memoria_fascia_sup_inf(after_stimulation_start_frame:after_stimulation_end_frame - 1,:,2),'previous','quartiles');
     memoria_fascia_sup_inf(after_stimulation_end_frame:end,:,2) = filloutliers(memoria_fascia_sup_inf(after_stimulation_end_frame:end,:,2),'previous','quartiles');
-       
-%     for x_value_time = 1:size(memoria_fascia_sup_inf,2)
-%         if x_value_time < before_stimulation_end_frame 
-%             memoria_fascia_sup_inf(1:before_stimulation_end_frame - 1,x_value_time,1) = smooth(memoria_fascia_sup_inf(1:before_stimulation_end_frame - 1,x_value_time,1),0.1,'rloess');
-%             memoria_fascia_sup_inf(1:before_stimulation_end_frame - 1,x_value_time,2) = smooth(memoria_fascia_sup_inf(1:before_stimulation_end_frame - 1,x_value_time,2),0.3,'rloess');
-%         elseif x_value_time < after_stimulation_start_frame
-%             memoria_fascia_sup_inf(before_stimulation_end_frame:after_stimulation_start_frame - 1,x_value_time,1) = smooth(memoria_fascia_sup_inf(before_stimulation_end_frame:after_stimulation_start_frame - 1,x_value_time,1),0.1,'rloess');
-%             memoria_fascia_sup_inf(before_stimulation_end_frame:after_stimulation_start_frame - 1,x_value_time,2) = smooth(memoria_fascia_sup_inf(before_stimulation_end_frame:after_stimulation_start_frame - 1,x_value_time,2),0.3,'rloess');
-%         elseif x_value_time < after_stimulation_end_frame
-%             memoria_fascia_sup_inf(after_stimulation_start_frame:after_stimulation_end_frame - 1,x_value_time,1) = smooth(memoria_fascia_sup_inf(after_stimulation_start_frame:after_stimulation_end_frame - 1,x_value_time,1),0.1,'rloess');
-%             memoria_fascia_sup_inf(after_stimulation_start_frame:after_stimulation_end_frame - 1,x_value_time,2) = smooth(memoria_fascia_sup_inf(after_stimulation_start_frame:after_stimulation_end_frame - 1,x_value_time,2),0.3,'rloess');
-%         elseif x_value_time >= after_stimulation_end_frame
-%             memoria_fascia_sup_inf(after_stimulation_end_frame:end,x_value_time,1) = smooth(memoria_fascia_sup_inf(after_stimulation_end_frame:end,x_value_time,1),0.1,'rloess');
-%             memoria_fascia_sup_inf(after_stimulation_end_frame:end,x_value_time,2) = smooth(memoria_fascia_sup_inf(after_stimulation_end_frame:end,x_value_time,2),0.3,'rloess');
-%         end
-%     end
     
     waitbar(0.8,App_Status,{'Optimizing results.', 'It may take a few seconds...'});
     %Optimización en el espacio
     for frame = 1:size(memoria_fascia_sup_inf,1)
-        memoria_fascia_sup_inf(frame,:,1) = smooth(memoria_fascia_sup_inf(frame,:,1),'loess');%0.1 rloess
+        memoria_fascia_sup_inf(frame,:,1) = smooth(memoria_fascia_sup_inf(frame,:,1),'loess');
         memoria_fascia_sup_inf(frame,:,2) = smooth(memoria_fascia_sup_inf(frame,:,2),0.1,'rloess');
     end
      

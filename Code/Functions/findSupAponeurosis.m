@@ -34,7 +34,7 @@ function [x_SupApo,y_SupApo] = findSupAponeurosis(eco, centroids)
     S = regionprops(CC, 'Centroid','Area');
     centroid_y = [S(1).Centroid;S(2).Centroid];
     centroid_y = centroid_y(:,2);
-    [c,nArea] = max(centroid_y);
+    [~,nArea] = max(centroid_y);
     Areas = [S.Area];
     L = labelmatrix(CC);
     eco_C = ismember(L, find([S.Area] == Areas(nArea))); 
