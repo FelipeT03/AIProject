@@ -10,7 +10,7 @@ function [x_InfApo,y_InfApo] = findInfAponeurosis(eco,centroids)
     
     %% Tratamiento de la imagen hasta conseguir una sola figura 
     eco_C = reshape(eco_C, img_size_eco(1), img_size_eco(2), 1);
-
+    eco_C = bwareaopen(eco_C,500);
     CC = bwconncomp(eco_C, 8);
     S = regionprops(CC, 'Area');
     Areas = sort([S.Area],'descend');
@@ -19,13 +19,7 @@ function [x_InfApo,y_InfApo] = findInfAponeurosis(eco,centroids)
     else 
         eco_C = bwareaopen(eco_C,Areas(length([S.Area])));
     end
-    eco_C = imfill(eco_C,'holes');%Imagen rellena espacios libres dentro de un elemento 
-
-
-    seD = strel('rectangle',[3 3]); 
-    eco_C = imerode(eco_C,seD); 
-    eco_C = imerode(eco_C,seD);
-        
+       
     eco_C = eco_C(1:img_size_eco(1),1:img_size_eco(2));
     
 

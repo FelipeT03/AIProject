@@ -1,24 +1,11 @@
-function [eco_memory, memoria_fascia_sup_inf, Results] = Measure()
+function [eco_memory, memoria_fascia_sup_inf, Results] = Measure(video_name,path_v)
     %% Pruebas con videos
     %Lista de Toolbox:
     %- Computer Vision System Toolbox 
     %- Image Processing Toolbox 
     %- Curve Fitting Toolbox
     %- Deep Learning Toolbox
-    %% Limpieza del área de trabajo
-    clear
-    clc
-    close all
-
     %% Parameters 
-    [video_name,path_v] = uigetfile('*.*','Select Video File');
-    %En caso de cancelar la acción el programa se deja de ejecutar 
-    if video_name == 0
-        eco_memory = 0; 
-        memoria_fascia_sup_inf = 0;
-        Results = 0;
-        return
-    end
     cut_area = [30 25 595 455];
     v = VideoReader(strcat(path_v,video_name));
     memoria_distancia = zeros(round(v.FrameRate * v.Duration),2);
@@ -140,28 +127,25 @@ function [eco_memory, memoria_fascia_sup_inf, Results] = Measure()
 
     %Optimización en el tiempo
     %Fascia sup
-    memoria_fascia_sup_inf(:,:,1) = filloutliers(memoria_fascia_sup_inf(:,:,1),'previous','quartiles');
+    memoria_fascia_sup_inf(:,:,1) = filloutliers(memoria_fascia_sup_inf(:,:,1),'nearest','quartiles');
     %Fascia inf
-    memoria_fascia_sup_inf(1:before_stimulation_end_frame - 1,:,2) = filloutliers(memoria_fascia_sup_inf(1:before_stimulation_end_frame - 1,:,2),'previous','quartiles');
-    memoria_fascia_sup_inf(before_stimulation_end_frame:after_stimulation_start_frame - 1,:,2) = filloutliers(memoria_fascia_sup_inf(before_stimulation_end_frame:after_stimulation_start_frame - 1,:,2),'previous','quartiles');
-    memoria_fascia_sup_inf(after_stimulation_start_frame:after_stimulation_end_frame - 1,:,2) = filloutliers(memoria_fascia_sup_inf(after_stimulation_start_frame:after_stimulation_end_frame - 1,:,2),'previous','quartiles');
-    memoria_fascia_sup_inf(after_stimulation_end_frame:end,:,2) = filloutliers(memoria_fascia_sup_inf(after_stimulation_end_frame:end,:,2),'previous','quartiles');
+    memoria_fascia_sup_inf(1:before_stimulation_end_frame - 1,:,2) = filloutliers(memoria_fascia_sup_inf(1:before_stimulation_end_frame - 1,:,2),'nearest','quartiles');
+    memoria_fascia_sup_inf(before_stimulation_end_frame:after_stimulation_start_frame - 1,:,2) = filloutliers(memoria_fascia_sup_inf(before_stimulation_end_frame:after_stimulation_start_frame - 1,:,2),'nearest','quartiles');
+    memoria_fascia_sup_inf(after_stimulation_start_frame:after_stimulation_end_frame - 1,:,2) = filloutliers(memoria_fascia_sup_inf(after_stimulation_start_frame:after_stimulation_end_frame - 1,:,2),'nearest','quartiles');
+    memoria_fascia_sup_inf(after_stimulation_end_frame:end,:,2) = filloutliers(memoria_fascia_sup_inf(after_stimulation_end_frame:end,:,2),'nearest','quartiles');
     
     waitbar(0.8,App_Status,{'Optimizing results.', 'It may take a few seconds...'});
     %Optimización en el espacio
     for frame = 1:size(memoria_fascia_sup_inf,1)
-        memoria_fascia_sup_inf(frame,:,1) = smooth(memoria_fascia_sup_inf(frame,:,1),'loess');
-        memoria_fascia_sup_inf(frame,:,2) = smooth(memoria_fascia_sup_inf(frame,:,2),0.1,'rloess');
+        memoria_fascia_sup_inf(frame,:,1) = smooth(memoria_fascia_sup_inf(frame,:,1),'moving');
+        memoria_fascia_sup_inf(frame,:,2) = smooth(memoria_fascia_sup_inf(frame,:,2),'moving');%0.1,'rloess'
     end
      
     
     memoria_distancia(:,3) = (memoria_fascia_sup_inf(:,muscle_x,2) - memoria_fascia_sup_inf(:,muscle_x,1));
-    frame_time = memoria_distancia(:,2);
     
-    waitbar(1,App_Status,'Saving Results');   
+    waitbar(1,App_Status,'Finishing...');   
     %% Procesamiento de Resultados
-    thickness = array2table(memoria_distancia,'VariableNames',{'Frame','Second','Millimeteers'});
-
     Results.Name = video_name;
     Results.Duration = v.Duration;
     Results.Frame_rate = v.FrameRate;
@@ -179,15 +163,6 @@ function [eco_memory, memoria_fascia_sup_inf, Results] = Measure()
     Results.UnderStimulation_duration_s = (1 / v.FrameRate) * (Results.UnderStimulation_frames(2) - Results.UnderStimulation_frames(1));
     Results.UnderStimulation_mean_mm = mean(memoria_distancia(after_stimulation_start_frame:after_stimulation_end_frame - 1,3));
     Results.UnderStimulation_variance_mm2 = std(memoria_distancia(after_stimulation_start_frame:after_stimulation_end_frame - 1,3)) ^ 2;    
-    %% Mostrar y guardar los resultados    
-    %Guardando Resultados
-    mkdir(strcat(video_name,'_results'))
-    save(strcat(video_name,'_results/','memoria_fascia_sup_inf.mat'),'memoria_fascia_sup_inf')
-    save(strcat(video_name,'_results/','frame_time.mat'),'frame_time')
-    save(strcat(video_name,'_results/','eco_memory.mat'),'eco_memory')
-    save(strcat(video_name,'_results/','Results.mat'),'Results')
-    writetable(thickness,strcat(video_name,'_results/','Thickness.csv'))
-    Results_table = struct2table(Results);
-    writetable(Results_table,strcat(video_name,'_results/','Summary.csv'))
+
     close(App_Status)
 end 
