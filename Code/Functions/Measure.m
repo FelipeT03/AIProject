@@ -38,7 +38,7 @@ function [eco_memory, memoria_fascia_sup_inf, Results] = Measure(video_name,path
     eco_memory = double(eco_memory);
     eco_memory = eco_memory / max(eco_memory,[],'all');
     %% Detectar movimiento    
-    waitbar(0.1,App_Status,'Selecting the best frames...');
+    waitbar(0.1,App_Status,'Selecting best frames...');
     opticFlow = opticalFlowHS;
 
     for frame = 1:size(eco_memory,3)
@@ -66,7 +66,7 @@ function [eco_memory, memoria_fascia_sup_inf, Results] = Measure(video_name,path
     after_f = after_f + 10 + locs_1(1);
 
     %% Selección de los frames
-    waitbar(0.2,App_Status,'Selecting the best frames...');
+    waitbar(0.2,App_Status,'Selecting best frames...');
 
     %Se realizan dos entrenamientos en dos frames diferentes, se toma el frame
     %más estático dentro de la zona sin estimulación y de la zona con
@@ -151,6 +151,7 @@ function [eco_memory, memoria_fascia_sup_inf, Results] = Measure(video_name,path
     Results.Frame_rate = v.FrameRate;
     Results.Scale_factor = param;
     Results.Muscle_x_pixel = muscle_x;
+    Results.Muscle_longitudinal_middle_point = muscle_x;
     Results.Before_stimulacion_frame = before_f;
     Results.After_stimulation_frame = after_f; 
     Results.AtRest_frames = [1 (before_stimulation_end_frame - 1)]; 
