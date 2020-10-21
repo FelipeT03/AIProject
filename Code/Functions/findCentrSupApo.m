@@ -13,7 +13,7 @@ function [centroidsSupApo, mask] = findCentrSupApo(eco)
     %% Training
     while sum(isnan(centroids),'all')
         initial_centroids = kMeansInitCentroids(data_eco, K);
-        [centroids, idx] = runkMeans(data_eco, initial_centroids, max_iters);
+        [centroids, ~] = runkMeans(data_eco, initial_centroids, max_iters);
     end
     centroidsSupApo  = sort(centroids,1);
     

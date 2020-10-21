@@ -12,7 +12,7 @@ function [eco_memory, memoria_fascia_sup_inf, Results] = Measure(video_name,path
     movimiento = zeros(round(v.FrameRate * v.Duration),2);
     param = ScaleFactor(readFrame(v));  
 
-    %% Cortar imagen
+    %% Cortar el video
     App_Status = waitbar(0,'Processing video...','Name','Wait');
     
     v.CurrentTime = 0;

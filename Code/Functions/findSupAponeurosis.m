@@ -9,7 +9,7 @@ function [x_SupApo,y_SupApo] = findSupAponeurosis(eco, centroids)
     eco_C = C_K(idx_eco,:);%Imagen b/n
     %% Tratamiento de la imagen hasta conseguir una sola figura 
     eco_C = reshape(eco_C, img_size_eco(1), img_size_eco(2), 1);
-    eco_C = bwareaopen(eco_C,1000);
+    eco_C = bwareaopen(eco_C,500);
     %% Encontrar los puntos que delimitan la figura
     [row,col] = find(eco_C);  
     [C,IA] = unique(col,'first');
