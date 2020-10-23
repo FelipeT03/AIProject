@@ -146,7 +146,7 @@ function [eco_memory, memoria_fascia_sup_inf, Results] = Measure(video_name,path
     
     waitbar(1,App_Status,'Finishing...');   
     %% Procesamiento de Resultados
-    Results.Name = video_name;
+    Results.Name = char(video_name);
     Results.Folder = path_v;
     Results.Duration = v.Duration;
     Results.Frame_rate = v.FrameRate;

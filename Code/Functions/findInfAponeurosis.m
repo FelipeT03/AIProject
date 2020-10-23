@@ -10,7 +10,7 @@ function [x_InfApo,y_InfApo] = findInfAponeurosis(eco,centroids)
     
     %% Tratamiento de la imagen hasta conseguir una sola figura 
     eco_C = reshape(eco_C, img_size_eco(1), img_size_eco(2), 1);
-    eco_C = bwareaopen(eco_C,500);
+    eco_C = bwareaopen(eco_C,400);
     CC = bwconncomp(eco_C, 8);
     S = regionprops(CC, 'Area');
     Areas = sort([S.Area],'descend');
