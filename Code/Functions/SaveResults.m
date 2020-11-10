@@ -17,7 +17,7 @@ function SaveResults(memoria_fascia_sup_inf, eco_memory, Results, MT_value, vide
     waitbar(0.9,App_Status,'Saving Results');  
     writetable(Results_table,strcat(path_results,'/Summary.csv'))
     waitbar(1,App_Status,'Saving Results');  
-    fileID = fopen(strcat(path_results,'/README.txt'),'w');
+    fileID = fopen(strcat(path_results,'/RESULTS.txt'),'w');
     fprintf(fileID,'eco_memory.mat: It contains all the frames of the video. It is used by the GUI. \r\n');
     fprintf(fileID,'memoria_fascia_sup_inf.mat: It contains the locations of both fascias in millimeters. \r\n');
     fprintf(fileID,'Results.mat: It contains a summary of the analysis results. If you change parameters in the GUI these values will change. \r\n');
