@@ -25,7 +25,9 @@ function [centroidsSupApo, mask] = findCentrSupApo(eco)
     se0 = strel('line',5,0);
     eco_C = imdilate(eco_C,[se90 se0]);
     stats = regionprops(eco_C,'BoundingBox');
+    stats = [stats.BoundingBox];
     mask = ones(size(eco));
-    mask(1:stats(1).BoundingBox(2) + stats(1).BoundingBox(4),:) = 0;
+    mask(stata,:) = 0;
+    %mask =  ~filterRegionsSup(eco_C > 0);
 
 end 
