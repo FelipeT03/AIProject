@@ -1,4 +1,4 @@
-function [centroidsSupApo, mask] = findCentrSupApo(eco)
+function [t_centroids, mask] = findCentrSupApo(eco)
 %Encuentra los centroides de luminancia para fascia superior
     %% Parameters
     K = 3;
@@ -16,9 +16,9 @@ function [centroidsSupApo, mask] = findCentrSupApo(eco)
         [centroids, ~] = runkMeans(data_eco, initial_centroids, max_iters);
     end
     centroidsSupApo  = sort(centroids,1);
+    t_centroids = (centroidsSupApo(end) + centroidsSupApo(end - 1)) / 2;
     
     %% Mask
-    t_centroids = (centroidsSupApo(end) + centroidsSupApo(end - 1)) / 2;
     eco_C = eco > t_centroids;
     eco_C = bwareaopen(eco_C,1000);
     se90 = strel('line',20,90); 

@@ -1,4 +1,4 @@
-function [centroidsInfApo, area_delete] = findCentrInfApo(eco)
+function [t_centroids, area_delete] = findCentrInfApo(eco)
 %Encuentra en los centroides para el cálculo de la Apo inferior
     %% Parameters
     K = 2;
@@ -105,6 +105,6 @@ function [centroidsInfApo, area_delete] = findCentrInfApo(eco)
     [centroids, idx] = runkMeans(data_eco, initial_centroids, max_iters);
     end
     centroidsInfApo  = sort(centroids,1);
-    
+    t_centroids = (centroidsInfApo(end) + centroidsInfApo(end - 1)) / 2;
 
 end 

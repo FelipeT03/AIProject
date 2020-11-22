@@ -1,15 +1,9 @@
-function [x_InfApo,y_InfApo] = findInfAponeurosis(eco,centroids)
+function [x_InfApo,y_InfApo] = findInfAponeurosis(eco,t_centroids)
 %Encuentra el límite inferior de la fascia inferior y devuelve su posición
 %en un vector(x,y) utilizando los centroides de luminancia proporcionados
-    K = 2;
-    C = eye(K);
+    eco_C = eco > t_centroids;
     img_size_eco = size(eco);
-    idx_eco = findClosestCentroids(eco(:), centroids);
-    C_K = C(:,K);
-    eco_C = C_K(idx_eco,:);%Imagen b/n
-    
     %% Tratamiento de la imagen hasta conseguir una sola figura 
-    eco_C = reshape(eco_C, img_size_eco(1), img_size_eco(2), 1);
     eco_C = bwareaopen(eco_C,1);%400
     CC = bwconncomp(eco_C, 8);
     S = regionprops(CC, 'Area');
