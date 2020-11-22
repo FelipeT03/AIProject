@@ -68,6 +68,8 @@ function [t_centroids, area_delete] = findCentrInfApo(eco)
         
         
     area_r = area(:,(1 + round(size(eco,2) * 0.4)):end);
+    %0.4 valor con el cual se lograba identificar fascia inferior para
+    %casos donde se tenían mancahs debajo del lado derecho. 
         S = regionprops(area_r, 'Area', 'Centroid');
         Areas = [S.Area];
         Areas = sort(Areas,'descend');
@@ -101,8 +103,8 @@ function [t_centroids, area_delete] = findCentrInfApo(eco)
 
     %% Training
     while sum(isnan(centroids),'all')
-    initial_centroids = kMeansInitCentroids(data_eco, K);
-    [centroids, idx] = runkMeans(data_eco, initial_centroids, max_iters);
+        initial_centroids = kMeansInitCentroids(data_eco, K);
+        [centroids, idx] = runkMeans(data_eco, initial_centroids, max_iters);
     end
     centroidsInfApo  = sort(centroids,1);
     t_centroids = (centroidsInfApo(end) + centroidsInfApo(end - 1)) / 2;

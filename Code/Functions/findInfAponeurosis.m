@@ -4,12 +4,12 @@ function [x_InfApo,y_InfApo] = findInfAponeurosis(eco,t_centroids)
     eco_C = eco > t_centroids;
     img_size_eco = size(eco);
     %% Tratamiento de la imagen hasta conseguir una sola figura 
-    eco_C = bwareaopen(eco_C,1);%400
+    eco_C = bwareaopen(eco_C,400);%400
     CC = bwconncomp(eco_C, 8);
     S = regionprops(CC, 'Area');
     Areas = sort([S.Area],'descend');
-    if length([S.Area]) >= 5
-        eco_C = bwareaopen(eco_C,Areas(5));
+    if length([S.Area]) >= 2
+        eco_C = bwareaopen(eco_C,Areas(2));
     else 
         eco_C = bwareaopen(eco_C,Areas(length([S.Area])));
     end
@@ -18,6 +18,9 @@ function [x_InfApo,y_InfApo] = findInfAponeurosis(eco,t_centroids)
     
 
     %% Encontrar los puntos que delimitan la figura
+    %0.8 del promedio, debe superar este valor para ser considerado como
+    %parte de la fascia, si es inferior a este valor se asigna el valor
+    %promedio.
     [row,col] = find(eco_C);
     [C,IA] = unique(col,'last');
     vector = [C row(IA)];

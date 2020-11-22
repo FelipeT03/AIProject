@@ -1,4 +1,6 @@
 function [muscle_x, muscle_y, muscle_x_min, muscle_x_max, muscle_y_max] = muscle_x_y(eco)
+    % El punto medio en y implica que se corta el video a la mitad. Para casoso donde la fascia inferior esté más arriba
+    % se puede eliminar parcial o completamente.
     %% Parameters
     K = 2;
     %% Tratamiento de datos
@@ -8,7 +10,7 @@ function [muscle_x, muscle_y, muscle_x_min, muscle_x_max, muscle_y_max] = muscle
     [L,centers] = imsegkmeans(I,K);
     
     %% Results
-    [val, p_val] = max(centers); 
+    [~, p_val] = max(centers); 
     eco_C = L == p_val;
     eco_C = bwareaopen(eco_C,100);
     %eco_C = findLargestArea(eco_C);

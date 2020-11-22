@@ -26,6 +26,6 @@ function [t_centroids, mask] = findCentrSupApo(eco)
     eco_C = imdilate(eco_C,[se90 se0]);
     stats = regionprops(eco_C,'BoundingBox');
     mask = ones(size(eco));
-    mask(1:stats(1).BoundingBox(2) + stats(1).BoundingBox(4),:) = 0;
+    mask((1:stats(1).BoundingBox(2) + stats(1).BoundingBox(4)),:) = 0;
 
 end 
