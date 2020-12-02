@@ -3,11 +3,11 @@ function [x_InfApo,y_InfApo] = findInfAponeurosis(eco,t_centroids)
 %en un vector(x,y) utilizando los centroides de luminancia proporcionados
     eco_C = eco > t_centroids;
     %% Tratamiento de la imagen hasta conseguir una sola figura 
-    eco_C = bwareaopen(eco_C,400);%400
+    %eco_C = bwareaopen(eco_C,200);
     CC = bwconncomp(eco_C, 8);
     S = regionprops(CC, 'Area');
     Areas = sort([S.Area],'descend');
-    eco_C = bwareaopen(eco_C,round(Areas(1) * 0.3));
+    eco_C = bwareaopen(eco_C,round(Areas(1) * 0.3)); %0.3
 
     %% Encontrar los puntos que delimitan la figura
     %0.8 del promedio, debe superar este valor para ser considerado como

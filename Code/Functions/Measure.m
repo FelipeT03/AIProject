@@ -25,7 +25,7 @@ function [eco_memory, memoria_fascia_sup_inf, Results] = Measure(video_name,path
     eco = eco / max(eco,[],'all'); % range(0-1)
 
     %Punto medio en x & y del musculo
-    [muscle_x, muscle_y, muscle_x_min, muscle_x_max, ~] = muscle_x_y(eco);
+    [muscle_x, muscle_y, muscle_x_min, muscle_x_max, muscle_y_min] = muscle_x_y(eco);
     cut_area(1) = cut_area(1) + muscle_x_min - 1;
     cut_area(3) = muscle_x_max - muscle_x_min - 1;
     %cut_area(4) = muscle_y_max;
@@ -83,10 +83,13 @@ function [eco_memory, memoria_fascia_sup_inf, Results] = Measure(video_name,path
     %% Training y cálculo de la máscara
     %Entrenamiento para frames sin estimulación
     % Centroides para Aponeurosis Inferior
+    
+    %muscle_y = 230; Seccion para cambiar el valor medio del musculo
+    
     [centroidsInfApo_b, area_delete_b] = findCentrInfApo(eco_b((muscle_y+1):end,:));
 
     % Centroides para Aponeurosis Superior
-    [centroidsSupApo_b, mask_sup] = findCentrSupApo(eco_b(1:muscle_y,:));
+    [centroidsSupApo_b, mask_sup] = findCentrSupApo(eco_b(1:muscle_y,:),muscle_y_min);
 
     %Entrenamiento para frames con estimulación
     % Centroides para Aponeurosis Inferior

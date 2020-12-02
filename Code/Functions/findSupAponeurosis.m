@@ -6,7 +6,7 @@ function [x_SupApo,y_SupApo] = findSupAponeurosis(eco, t_centroids)
     CC = bwconncomp(eco_C, 8);
     S = regionprops(CC, 'Area');
     Areas = sort([S.Area],'descend');
-    eco_C = bwareaopen(eco_C,round(Areas(1) * 0.50));
+    eco_C = bwareaopen(eco_C,round(Areas(1) * 0.5)); %0.5
     %% Encontrar los puntos que delimitan la figura
     [row,col] = find(eco_C);  
     [C,IA] = unique(col,'first');
